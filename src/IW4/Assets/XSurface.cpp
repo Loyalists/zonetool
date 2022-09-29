@@ -16,7 +16,7 @@ namespace ZoneTool
 		{
 			AssetReader read(mem);
 			
-			if (!read.open("XSurface\\" + name + ".xse"))
+			if (!read.open("XSurface\\" + name + ".xsurface_export"))
 			{
 				return nullptr;
 			}
@@ -195,6 +195,148 @@ namespace ZoneTool
 			}
 		}
 
+		void write_xsurface(IZone* zone, ZoneBuffer* buf, zonetool::XSurface* dest, zonetool::XSurface* data)
+		{
+			dest->vb0 = 0;
+			dest->vb0View = 0;
+			dest->indexBuffer = 0;
+			dest->blendVertsBuffer = 0;
+			dest->blendVertsView = 0;
+			dest->vblmapBuffer = 0;
+			dest->vblmapView = 0;
+			dest->tensionAccumTableBuffer = 0;
+			dest->tensionAccumTableView = 0;
+			dest->tensionDataBuffer = 0;
+			dest->tensionDataView = 0;
+			dest->indexBufferView = 0;
+
+			if (data->verts0.verts0)
+			{
+				buf->align(15);
+				if ((data->flags & 8) != 0)
+				{
+					buf->write(reinterpret_cast<GfxPackedMotionVertex*>(data->verts0.verts0), data->vertCount);
+				}
+				else
+				{
+					buf->write(reinterpret_cast<GfxPackedVertex*>(data->verts0.verts0), data->vertCount);
+				}
+
+				ZoneBuffer::clear_pointer(&dest->verts0.verts0);
+			}
+
+			if (data->triIndices)
+			{
+				buf->align(15);
+				buf->write(data->triIndices, data->triCount);
+				ZoneBuffer::clear_pointer(&dest->triIndices);
+			}
+
+			if (data->triIndices2)
+			{
+				buf->align(15);
+				buf->write(data->triIndices2, data->triCount);
+				ZoneBuffer::clear_pointer(&dest->triIndices2);
+			}
+
+			if (data->rigidVertLists)
+			{
+				buf->align(3);
+				dest->rigidVertLists = buf->write(data->rigidVertLists, data->rigidVertListCount);
+				for (unsigned char vert = 0; vert < data->rigidVertListCount; vert++)
+				{
+					if (data->rigidVertLists[vert].collisionTree)
+					{
+						buf->align(3);
+						dest->rigidVertLists[vert].collisionTree = buf->write(data->rigidVertLists[vert].collisionTree);
+
+						if (data->rigidVertLists[vert].collisionTree->nodes)
+						{
+							buf->align(15);
+							dest->rigidVertLists[vert].collisionTree->nodes = buf->write(data->rigidVertLists[vert].collisionTree->nodes, data->rigidVertLists[vert].collisionTree->nodeCount);
+						}
+
+						if (data->rigidVertLists[vert].collisionTree->leafs)
+						{
+							buf->align(1);
+							dest->rigidVertLists[vert].collisionTree->leafs = buf->write(data->rigidVertLists[vert].collisionTree->leafs, data->rigidVertLists[vert].collisionTree->leafCount);
+						}
+						ZoneBuffer::clear_pointer(&dest->rigidVertLists[vert].collisionTree);
+					}
+				}
+				ZoneBuffer::clear_pointer(&dest->rigidVertLists);
+			}
+
+			if (data->unknown0)
+			{
+				buf->align(15);
+				buf->write_stream(data->unknown0, 16, data->vertCount);
+				ZoneBuffer::clear_pointer(&dest->unknown0);
+			}
+
+			if (data->blendVerts)
+			{
+				buf->align(1);
+				buf->write_stream(data->blendVerts, 2, (data->blendVertCounts[0]
+					+ 3 * data->blendVertCounts[1]
+					+ 5 * data->blendVertCounts[2]
+					+ 7 * data->blendVertCounts[3]
+					+ 9 * data->blendVertCounts[4]
+					+ 11 * data->blendVertCounts[5]
+					+ 13 * data->blendVertCounts[6]
+					+ 15 * data->blendVertCounts[7]));
+				ZoneBuffer::clear_pointer(&dest->blendVerts);
+			}
+
+			if (data->blendVertsTable)
+			{
+				buf->align(0);
+				buf->write_stream(data->blendVertsTable, 32, data->vertCount);
+				ZoneBuffer::clear_pointer(&dest->blendVertsTable);
+			}
+
+			if (data->lmapUnwrap)
+			{
+				buf->align(3);
+				buf->write_stream(data->lmapUnwrap, 4, data->vertCount);
+				ZoneBuffer::clear_pointer(&dest->lmapUnwrap);
+			}
+
+			if (data->subdiv || data->subdivLevelCount)
+			{
+				dest->subdiv = nullptr;
+				dest->subdivLevelCount = 0;
+			}
+
+			if (data->tensionData)
+			{
+				buf->align(3);
+				buf->write_stream(data->tensionData, 4, (data->blendVertCounts[0]
+					+ data->blendVertCounts[1]
+					+ data->blendVertCounts[2]
+					+ data->blendVertCounts[3]
+					+ data->blendVertCounts[4]
+					+ data->blendVertCounts[5]
+					+ data->blendVertCounts[6]
+					+ data->blendVertCounts[7]));
+
+				ZoneBuffer::clear_pointer(&dest->tensionData);
+			}
+
+			if (data->tensionAccumTable)
+			{
+				buf->align(1);
+				buf->write_stream(data->tensionAccumTable, 32, data->vertCount);
+				ZoneBuffer::clear_pointer(&dest->tensionAccumTable);
+			}
+
+			if (data->blendShapes)
+			{
+				dest->blendShapes = nullptr;
+				dest->blendShapesCount = 0;
+			}
+		}
+
 		void IXSurface::write(IZone* zone, ZoneBuffer* buf)
 		{
 			auto* data = this->asset_;
@@ -221,7 +363,7 @@ namespace ZoneTool
 		void IXSurface::dump(XModelSurfs* asset)
 		{
 			AssetDumper dump;
-			dump.open("XSurface\\"s + asset->name + ".xse");
+			dump.open("XSurface\\"s + asset->name + ".xsurface_export");
 
 			if (asset->name == "tntbomb_mp_low10"s)
 			{

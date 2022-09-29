@@ -24,7 +24,7 @@ namespace ZoneTool
 		T Read()
 		{
 			auto retval = *reinterpret_cast<T*>(&this->m_buf[this->m_pos]);
-			this->m_pos += sizeof T;
+			this->m_pos += sizeof(T);
 
 			return retval;
 		}
@@ -33,7 +33,7 @@ namespace ZoneTool
 		T* ReadArray(std::size_t count = 1)
 		{
 			auto retval = reinterpret_cast<T*>(&this->m_buf[this->m_pos]);
-			this->m_pos += sizeof T * count;
+			this->m_pos += sizeof(T) * count;
 
 			return retval;
 		}
@@ -45,7 +45,7 @@ namespace ZoneTool
 			{
 				memcpy(ptr,
 				       &this->m_buf[this->m_pos],
-				       count * sizeof T);
+				       count * sizeof(T));
 			}
 		}
 

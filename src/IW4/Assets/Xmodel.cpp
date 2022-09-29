@@ -109,14 +109,10 @@ namespace ZoneTool
 
 		void IXModel::write(IZone* zone, ZoneBuffer* buf)
 		{
-#ifdef USE_VMPROTECT
-			VMProtectBeginUltra("IW4::IXModel::write");
-#endif
-
 			auto data = this->asset_;
 			auto dest = buf->write<XModel>(data);
 
-			assert(sizeof XModel, 304);
+			//assert(sizeof XModel, 304);
 
 			buf->push_stream(3);
 			START_LOG_STREAM;
@@ -238,10 +234,6 @@ namespace ZoneTool
 
 			END_LOG_STREAM;
 			buf->pop_stream();
-
-#ifdef USE_VMPROTECT
-			VMProtectEnd();
-#endif
 		}
 
 #ifdef GENERATE_IW5_MODELS

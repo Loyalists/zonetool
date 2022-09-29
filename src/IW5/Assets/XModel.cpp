@@ -69,7 +69,7 @@ namespace ZoneTool
 
 		XModel* IXModel::parse(std::string name, ZoneMemory* mem, const std::function<std::uint16_t(const std::string&)>& allocString)
 		{			
-			return IXModel::parse_new(name, mem, "XModel\\" + name + ".xme6", allocString);
+			return IXModel::parse_new(name, mem, "XModel\\" + name + ".xmodel_export", allocString);
 		}
 
 		void IXModel::init(const std::string& name, ZoneMemory* mem)
@@ -79,9 +79,9 @@ namespace ZoneTool
 						
 			if ((name.find("weapon_") != std::string::npos || name.find("viewmodel_") != std::string::npos) &&
 				name.find("_scope") != std::string::npos &&
-				!FileSystem::FileExists("XModel\\" + name + ".xme6"))
+				!FileSystem::FileExists("XModel\\" + name + ".xmodel_export"))
 			{
-				const auto model = IXModel::parse_new(name, mem, "XModel\\" + name.substr(0, name.size() - 6) + ".xme6", SL_AllocString);
+				const auto model = IXModel::parse_new(name, mem, "XModel\\" + name.substr(0, name.size() - 6) + ".xmodel_export", SL_AllocString);
 
 				if (model != nullptr)
 				{
@@ -403,7 +403,7 @@ namespace ZoneTool
 		void IXModel::dump(XModel* asset, const std::function<const char* (std::uint16_t)>& convertToString)
 		{
 			AssetDumper dump;
-			dump.open("XModel\\"s + asset->name + ".xme6");
+			dump.open("XModel\\"s + asset->name + ".xmodel_export");
 
 			// name
 			dump.dump_single(asset);

@@ -83,7 +83,7 @@ namespace ZoneTool
 		T* Alloc(std::size_t count)
 		{
 			std::lock_guard<std::recursive_mutex> g(this->mutex_);
-			return this->ManualAlloc<T>(sizeof T, count);
+			return this->ManualAlloc<T>(sizeof(T), count);
 		}
 
 		template <typename T>

@@ -131,7 +131,7 @@ namespace ZoneTool
 	}
 	template <typename T> static void endian_convert(T* data)
 	{
-		return endian_convert((void*)data, sizeof T);
+		return endian_convert((void*)data, sizeof(T));
 	}
 #pragma push(pop)
 }

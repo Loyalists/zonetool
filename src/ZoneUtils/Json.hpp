@@ -789,14 +789,16 @@ namespace nlohmann
 		static T* create(Args&& ... args)
 		{
 			AllocatorType<T> alloc;
-			auto deleter = [&](T* object)
+			using AllocatorTraits = std::allocator_traits<AllocatorType<T>>;
+
+			auto deleter = [&](T* obj)
 			{
-				alloc.deallocate(object, 1);
+				AllocatorTraits::deallocate(alloc, obj, 1);
 			};
-			std::unique_ptr<T, decltype(deleter)> object(alloc.allocate(1), deleter);
-			alloc.construct(object.get(), std::forward<Args>(args)...);
-			assert(object.get() != nullptr);
-			return object.release();
+			std::unique_ptr<T, decltype(deleter)> obj(AllocatorTraits::allocate(alloc, 1), deleter);
+			AllocatorTraits::construct(alloc, obj.get(), std::forward<Args>(args)...);
+			assert(obj != nullptr);
+			return obj.release();
 		}
 
 		////////////////////////
@@ -2165,7 +2167,7 @@ namespace nlohmann
 			case value_t::object:
 				{
 					AllocatorType<object_t> alloc;
-					alloc.destroy(m_value.object);
+					//alloc.destroy(m_value.object);
 					alloc.deallocate(m_value.object, 1);
 					break;
 				}
@@ -2173,7 +2175,7 @@ namespace nlohmann
 			case value_t::array:
 				{
 					AllocatorType<array_t> alloc;
-					alloc.destroy(m_value.array);
+					//alloc.destroy(m_value.array);
 					alloc.deallocate(m_value.array, 1);
 					break;
 				}
@@ -2181,7 +2183,7 @@ namespace nlohmann
 			case value_t::string:
 				{
 					AllocatorType<string_t> alloc;
-					alloc.destroy(m_value.string);
+					//alloc.destroy(m_value.string);
 					alloc.deallocate(m_value.string, 1);
 					break;
 				}

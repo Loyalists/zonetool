@@ -42,7 +42,7 @@ namespace ZoneTool
 		{
 			if (fp)
 			{
-				fwrite(&value, sizeof T, 1, fp);
+				fwrite(&value, sizeof(T), 1, fp);
 			}
 		}
 
@@ -52,7 +52,7 @@ namespace ZoneTool
 			if (fp)
 			{
 				fwrite(&type, 1, 1, fp);
-				fwrite(&value, sizeof T, 1, fp);
+				fwrite(&value, sizeof(T), 1, fp);
 			}
 		}
 
@@ -281,7 +281,7 @@ namespace ZoneTool
 
 			if (fp_)
 			{
-				fread(&value, sizeof T, 1, fp_);
+				fread(&value, sizeof(T), 1, fp_);
 			}
 
 			return value;
