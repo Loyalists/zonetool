@@ -221,14 +221,13 @@ namespace ZoneTool
 		void IXSurface::dump(XModelSurfs* asset)
 		{
 			const auto name = reinterpret_cast<std::uint64_t>(asset->name);
-			auto surfs = std::make_shared<zonetool::XSurface[]>(asset->numsurfs);
+			auto surfs = std::make_unique<zonetool::XSurface[]>(asset->numsurfs);
 
 			for (int i = 0; i < asset->numsurfs; i++) {
-				auto surf = surfs[i];
-				surf.vertCount = asset->surfs[i].vertCount;
-				surf.triCount = asset->surfs[i].triCount;
-				surf.rigidVertListCount = asset->surfs[i].vertListCount;
-				memcpy(surf.blendVertCounts, asset->surfs[i].vertexInfo.vertCount, sizeof(XSurfaceVertexInfo::vertCount));
+				surfs[i].vertCount = asset->surfs[i].vertCount;
+				surfs[i].triCount = asset->surfs[i].triCount;
+				//surf.rigidVertListCount = asset->surfs[i].vertListCount;
+				memcpy(surfs[i].blendVertCounts, asset->surfs[i].vertexInfo.vertCount, sizeof(XSurfaceVertexInfo::vertCount));
 
 				int blendVertsDataLength = asset->surfs[i].vertexInfo.vertCount[0]
 					+ 3 * asset->surfs[i].vertexInfo.vertCount[1]
@@ -240,10 +239,10 @@ namespace ZoneTool
 					+ asset->surfs[i].vertexInfo.vertCount[2]
 					+ asset->surfs[i].vertexInfo.vertCount[3];
 
-				auto packedMotionVerts0 = std::make_shared<zonetool::GfxPackedMotionVertex[]>(asset->surfs[i].vertCount);
+				auto packedMotionVerts0 = new zonetool::GfxPackedMotionVertex[asset->surfs[i].vertCount];
 
 				for (int v = 0; v < asset->surfs[i].vertCount; v++) {
-					auto vert = packedMotionVerts0[v];
+					auto& vert = packedMotionVerts0[v];
 					memcpy(vert.xyz, asset->surfs[i].verticies[v].xyz, sizeof(GfxPackedVertex::xyz));
 					vert.binormalSignAndHeight = asset->surfs[i].verticies[v].binormalSign;
 					vert.texCoord = {
@@ -257,104 +256,61 @@ namespace ZoneTool
 					};
 				}
 
-				auto triIndices = std::make_shared<zonetool::Face[]>(asset->surfs[i].triCount);
+				auto triIndices = new zonetool::Face[asset->surfs[i].triCount];
+				auto triIndices2 = new zonetool::Face[asset->surfs[i].triCount];
 				for (int f = 0; f < asset->surfs[i].triCount; f++) {
-					auto face = triIndices[f];
-					face.v1 = asset->surfs[i].triIndices->v1;
-					face.v2 = asset->surfs[i].triIndices->v2;
-					face.v3 = asset->surfs[i].triIndices->v3;
-				}
+					auto& face = triIndices[f];
+					face.v1 = asset->surfs[i].triIndices[f].v1;
+					face.v2 = asset->surfs[i].triIndices[f].v2;
+					face.v3 = asset->surfs[i].triIndices[f].v3;
 
-				auto blendVerts = std::make_shared<zonetool::XBlendInfo[]>(blendVertsDataLength);
+					auto& face2 = triIndices2[f];
+					face2.v1 = asset->surfs[i].triIndices[f].v1;
+					face2.v2 = asset->surfs[i].triIndices[f].v2;
+					face2.v3 = asset->surfs[i].triIndices[f].v3;
+				}
+				//memcpy(triIndices2.get(), triIndices.get(), asset->surfs[i].triCount * sizeof(zonetool::Face));
+
+				auto blendVerts = new zonetool::XBlendInfo[blendVertsDataLength];
 				for (int j = 0; j < blendVertsDataLength; j++) {
 					blendVerts[j] = asset->surfs[i].vertexInfo.vertsBlend[j];
 				}
 
-				auto tensionData = std::make_shared<zonetool::alignCompBufFloat_t[]>(blendVertsTotal);
+				auto tensionData = new zonetool::alignCompBufFloat_t[blendVertsTotal];
 				for (int j = 0; j < blendVertsTotal; j++) {
 					tensionData[j] = 0;
 				}
 
-				auto tensionAccumTable = std::make_shared<zonetool::alignCompBufUShort_t[]>(asset->surfs[i].vertCount);
+				auto tensionAccumTable = new zonetool::alignCompBufUShort_t[asset->surfs[i].vertCount];
 				for (int j = 0; j < asset->surfs[i].vertCount; j++) {
 					tensionAccumTable[j] = 0;
 				}
 
-				surf.verts0.packedMotionVerts0 = reinterpret_cast<std::uint64_t>(packedMotionVerts0.get());
-				surf.triIndices = reinterpret_cast<std::uint64_t>(triIndices.get());
-				surf.blendVerts = reinterpret_cast<std::uint64_t>(blendVerts.get());
-				surf.tensionData = reinterpret_cast<std::uint64_t>(tensionData.get());
-				surf.tensionAccumTable = reinterpret_cast<std::uint64_t>(tensionAccumTable.get());
+				surfs[i].verts0.packedMotionVerts0 = reinterpret_cast<std::uint64_t>(packedMotionVerts0);
+				surfs[i].triIndices = reinterpret_cast<std::uint64_t>(triIndices);
+				surfs[i].triIndices2 = reinterpret_cast<std::uint64_t>(triIndices2);
+				if (blendVertsDataLength > 0) {
+					surfs[i].blendVerts = reinterpret_cast<std::uint64_t>(blendVerts);
+				}
+				if (blendVertsTotal > 0) {
+					surfs[i].tensionData = reinterpret_cast<std::uint64_t>(tensionData);
+					surfs[i].tensionAccumTable = reinterpret_cast<std::uint64_t>(tensionAccumTable);
+				}
 			}
 
 			auto casted_surfs = reinterpret_cast<std::uint64_t>(surfs.get());
-			auto casted_asset = std::make_shared<zonetool::XModelSurfs>(
-				zonetool::XModelSurfs
-				{
+			auto converted_asset = zonetool::XModelSurfs{
 				.name = name,
 				.surfs = casted_surfs,
 				.numsurfs = asset->numsurfs,
-				});
+			};
 
-			dump_converted(casted_asset.get());
-
-			//dump.dump_array(asset, 1);
-			//dump.dump_string(asset->name);
-
-			//for (auto i = 0u; i < asset->numsurfs; i++)
-			//{
-			//	dump.dump_int(asset->surfs[i].tileMode);
-			//	dump.dump_int(asset->surfs[i].deformed);
-			//	dump.dump_int(asset->surfs[i].baseTriIndex);
-			//	dump.dump_int(asset->surfs[i].baseVertIndex);
-
-			//	for (auto j = 0; j < 6; j++)
-			//	{
-			//		dump.dump_int(asset->surfs[i].partBits[j]);
-			//	}
-
-			//	// vertex bs
-			//	dump.dump_array(&asset->surfs[i].vertexInfo, 1);
-			//	dump.dump_array(asset->surfs[i].vertexInfo.vertsBlend,
-			//	           asset->surfs[i].vertexInfo.vertCount[0] +
-			//	           (asset->surfs[i].vertexInfo.vertCount[1] * 3) +
-			//	           (asset->surfs[i].vertexInfo.vertCount[2] * 5) +
-			//	           (asset->surfs[i].vertexInfo.vertCount[3] * 7)
-			//	);
-
-			//	dump.dump_int(asset->surfs[i].vertCount);
-			//	dump.dump_array(asset->surfs[i].verticies, asset->surfs[i].vertCount);
-
-			//	dump.dump_int(asset->surfs[i].triCount);
-			//	dump.dump_array(asset->surfs[i].triIndices, asset->surfs[i].triCount);
-
-			//	dump.dump_int(asset->surfs[i].vertListCount);
-			//	dump.dump_array(asset->surfs[i].rigidVertLists, asset->surfs[i].vertListCount);
-			//	for (auto vert = 0; vert < asset->surfs[i].vertListCount; vert++)
-			//	{
-			//		if (asset->surfs[i].rigidVertLists[vert].collisionTree)
-			//		{
-			//			dump.dump_array(asset->surfs[i].rigidVertLists[vert].collisionTree, 1);
-
-			//			if (asset->surfs[i].rigidVertLists[vert].collisionTree->leafs)
-			//			{
-			//				dump.dump_array(asset->surfs[i].rigidVertLists[vert].collisionTree->leafs,
-			//				           asset->surfs[i].rigidVertLists[vert].collisionTree->leafCount);
-			//			}
-
-			//			if (asset->surfs[i].rigidVertLists[vert].collisionTree->nodes)
-			//			{
-			//				dump.dump_array(asset->surfs[i].rigidVertLists[vert].collisionTree->nodes,
-			//				           asset->surfs[i].rigidVertLists[vert].collisionTree->nodeCount);
-			//			}
-			//		}
-			//	}
-			//}
+			dump_converted(&converted_asset);
 		}
 
 		void IXSurface::dump_converted(zonetool::XModelSurfs* asset)
 		{
-			const char* name = reinterpret_cast<char*>(asset->name);
+			const char* name = reinterpret_cast<const char*>(asset->name);
 			auto surfs = reinterpret_cast<zonetool::XSurface*>(asset->surfs);
 
 			const auto path = "xsurface\\"s + name + ".xsurface_export";
@@ -369,6 +325,8 @@ namespace ZoneTool
 			dump.dump_string(name);
 
 			dump.dump_array(surfs, asset->numsurfs);
+			ZONETOOL_INFO("Dumping xmodel surface \"%s\"...", name);
+
 			for (unsigned short i = 0; i < asset->numsurfs; i++)
 			{
 				if ((surfs[i].flags & 8) != 0)
@@ -387,33 +345,33 @@ namespace ZoneTool
 				dump.dump_array(triIndices, surfs[i].triCount);
 				dump.dump_array(triIndices2, surfs[i].triCount);
 
-				auto rigidVertLists = reinterpret_cast<zonetool::XRigidVertList*>(surfs[i].rigidVertLists);
-				dump.dump_array(rigidVertLists, surfs[i].rigidVertListCount);
-				for (unsigned char vert = 0; vert < surfs[i].rigidVertListCount; vert++)
-				{
-					if (rigidVertLists)
-					{
-						auto collisionTree = reinterpret_cast<zonetool::XSurfaceCollisionTree*>(rigidVertLists[vert].collisionTree);
-						if (collisionTree)
-						{
-							dump.dump_single(collisionTree);
+				//auto rigidVertLists = reinterpret_cast<zonetool::XRigidVertList*>(surfs[i].rigidVertLists);
+				//dump.dump_array(rigidVertLists, surfs[i].rigidVertListCount);
+				//for (unsigned char vert = 0; vert < surfs[i].rigidVertListCount; vert++)
+				//{
+				//	if (rigidVertLists)
+				//	{
+				//		auto collisionTree = reinterpret_cast<zonetool::XSurfaceCollisionTree*>(rigidVertLists[vert].collisionTree);
+				//		if (collisionTree)
+				//		{
+				//			dump.dump_single(collisionTree);
 
-							auto leafs = reinterpret_cast<zonetool::XSurfaceCollisionLeaf*>(collisionTree->leafs);
-							auto nodes = reinterpret_cast<zonetool::XSurfaceCollisionNode*>(collisionTree->nodes);
+				//			auto leafs = reinterpret_cast<zonetool::XSurfaceCollisionLeaf*>(collisionTree->leafs);
+				//			auto nodes = reinterpret_cast<zonetool::XSurfaceCollisionNode*>(collisionTree->nodes);
 
-							if (leafs)
-							{
-								dump.dump_array(leafs,
-									collisionTree->leafCount);
-							}
-							if (nodes)
-							{
-								dump.dump_array(nodes,
-									collisionTree->nodeCount);
-							}
-						}
-					}
-				}
+				//			if (leafs)
+				//			{
+				//				dump.dump_array(leafs,
+				//					collisionTree->leafCount);
+				//			}
+				//			if (nodes)
+				//			{
+				//				dump.dump_array(nodes,
+				//					collisionTree->nodeCount);
+				//			}
+				//		}
+				//	}
+				//}
 
 				auto unknown0 = reinterpret_cast<zonetool::UnknownXSurface0*>(surfs[i].unknown0);
 				auto blendVerts = reinterpret_cast<zonetool::XBlendInfo*>(surfs[i].blendVerts);
@@ -445,6 +403,30 @@ namespace ZoneTool
 					+ surfs[i].blendVertCounts[6]
 					+ surfs[i].blendVertCounts[7]));
 				dump.dump_raw(tensionAccumTable, 32 * surfs[i].vertCount);
+
+				//DEBUG
+				//int blendVertsDataLength = surfs[i].blendVertCounts[0]
+				//	+ 3 * surfs[i].blendVertCounts[1]
+				//	+ 5 * surfs[i].blendVertCounts[2]
+				//	+ 7 * surfs[i].blendVertCounts[3];
+
+				//int blendVertsTotal = surfs[i].blendVertCounts[0]
+				//	+ surfs[i].blendVertCounts[1]
+				//	+ surfs[i].blendVertCounts[2]
+				//	+ surfs[i].blendVertCounts[3];
+
+				//ZONETOOL_INFO("surf: %d", i);
+				//ZONETOOL_INFO("vertCount: %d", surfs[i].vertCount);
+				//ZONETOOL_INFO("triCount: %d", surfs[i].triCount);
+				//for (int j = 0; j < surfs[i].vertCount; j++) {
+				//	auto packedMotionVerts0 = reinterpret_cast<zonetool::GfxPackedMotionVertex*>(surfs[i].verts0.packedMotionVerts0);
+				//	ZONETOOL_INFO("xyz: %f %f %f", packedMotionVerts0[j].xyz[0], packedMotionVerts0[j].xyz[1], packedMotionVerts0[j].xyz[2]);
+				//}
+
+				//for (int j = 0; j < blendVertsDataLength; j++) {
+				//	int weight = reinterpret_cast<int>(blendVerts);
+				//	ZONETOOL_INFO("blendVert: %d", weight);
+				//}
 			}
 
 			dump.close();
