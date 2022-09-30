@@ -17,6 +17,7 @@
 // #define CONVERT_IW5_MAPENTS
 
 #include <windows.h>
+#include <shlwapi.h>
 
 #undef min
 #undef max

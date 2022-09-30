@@ -7,6 +7,7 @@
 // License: GNU GPL v3.0
 // ========================================================
 #pragma once
+#include "../H2/zonetool/structs.hpp"
 
 namespace ZoneTool
 {
@@ -34,6 +35,7 @@ namespace ZoneTool
 			void write(IZone* zone, ZoneBuffer* buffer) override;
 
 			static void dump(XModelSurfs* asset);
+			static void dump_converted(zonetool::XModelSurfs* asset);
 		};
 	}
 }

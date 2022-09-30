@@ -14,6 +14,8 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
+#include <memory>
+#include <shlwapi.h>
 
 using namespace std::string_literals;
 

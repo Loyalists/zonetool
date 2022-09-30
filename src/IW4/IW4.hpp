@@ -12,7 +12,6 @@
 #include "Functions.hpp"
 #include "Structs.hpp"
 #include "../IW5/Structs.hpp"
-#include "../H2/zonetool/structs.hpp"
 #include "Zone.hpp"
 
 namespace ZoneTool
