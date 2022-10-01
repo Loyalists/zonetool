@@ -38,9 +38,6 @@ namespace ZoneTool
 
 			static void dump(XModel* asset,
 				const std::function<const char* (std::uint16_t)>& convertToString = SL_ConvertToString);
-			static void dump_converted(zonetool::XModel* asset,
-				const std::function<const char* (std::uint16_t)>& convertToString = SL_ConvertToString);
-			static zonetool::XModel* ConvertXModel(XModel* asset);
 		};
 	}
 }

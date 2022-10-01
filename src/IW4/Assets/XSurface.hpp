@@ -36,7 +36,7 @@ namespace ZoneTool
 
 			static void dump(XModelSurfs* asset);
 			static void dump_converted(zonetool::XModelSurfs* asset);
-			static zonetool::XModelSurfs* ConvertXModelSurfs(XModelSurfs* asset);
+			static void ConvertXSurface(zonetool::XSurface* surf, XSurface* asset);
 		};
 	}
 }
