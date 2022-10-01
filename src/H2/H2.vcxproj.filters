@@ -37,8 +37,5 @@
     <Filter Include="zonetool\utils">
       <UniqueIdentifier>{f13347bf-089f-4ceb-81fb-995017905338}</UniqueIdentifier>
     </Filter>
-    <Filter Include="zonetool\utils\io">
-      <UniqueIdentifier>{cddb3843-fa84-4179-9c82-3a6765b27b5c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

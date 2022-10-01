@@ -7,6 +7,7 @@
 // License: GNU GPL v3.0
 // ========================================================
 #include "stdafx.hpp"
+#include <h2utils/assetmanager.hpp>
 
 namespace ZoneTool
 {
@@ -371,7 +372,7 @@ namespace ZoneTool
 
 			const auto path = "xsurface\\"s + name + ".xsurface_export";
 
-			AssetDumper dump;
+			zonetool::assetmanager::dumper dump;
 			if (!dump.open(path))
 			{
 				return;

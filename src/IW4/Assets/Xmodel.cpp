@@ -8,6 +8,7 @@
 // ========================================================
 #include "stdafx.hpp"
 #include "IW5/Assets/XModel.hpp"
+#include <h2utils/assetmanager.hpp>
 
 namespace ZoneTool
 {
@@ -247,13 +248,13 @@ namespace ZoneTool
 			for (int b = 0; b < asset->numBones; b++) {
 				boneNames[b] = static_cast<zonetool::scr_string_t>(asset->boneNames[b]);
 			}
-			xmodel->boneNames = reinterpret_cast<std::uint64_t>(asset->boneNames);
-
-			unsigned char* parentList = new unsigned char[asset->numBones - asset->numRootBones]();
-			memcpy(parentList, asset->parentList, (asset->numBones - asset->numRootBones) * sizeof(char));
-			xmodel->parentList = reinterpret_cast<std::uint64_t>(parentList);
+			xmodel->boneNames = reinterpret_cast<std::uint64_t>(boneNames);
 
 			int numChildBones = asset->numBones - asset->numRootBones;
+			unsigned char* parentList = new unsigned char[numChildBones]();
+			memcpy(parentList, asset->parentList, numChildBones * sizeof(char));
+			xmodel->parentList = reinterpret_cast<std::uint64_t>(parentList);
+
 			auto tagAngles = new zonetool::XModelAngle[numChildBones]();
 			auto tagPositions = new zonetool::XModelTagPos[numChildBones]();
 			for (int i = 0; i < numChildBones; i++) {
@@ -295,9 +296,9 @@ namespace ZoneTool
 				lodInfo[i].numsurfs = asset->lods[i].numSurfacesInLod;
 				lodInfo[i].surfIndex = asset->lods[i].surfIndex;
 				lodInfo[i].surfs = 0;
-				auto surfs = new zonetool::XSurface[lodInfo[i].numsurfs]();
 
 				if (asset->lods[i].surfaces) {
+					auto surfs = new zonetool::XSurface[lodInfo[i].numsurfs]();
 					for (int j = 0; j < asset->lods[i].surfaces->numsurfs; j++) {
 						IXSurface::ConvertXSurface(&surfs[j], &asset->lods[i].surfaces->surfs[j]);
 					}
@@ -313,6 +314,45 @@ namespace ZoneTool
 				}
 			}
 
+			xmodel->numLods = asset->numLods;
+			xmodel->collLod = asset->collLod;
+			xmodel->numCollSurfs = asset->numColSurfs;
+			xmodel->contents = asset->contents;
+			xmodel->radius = asset->radius;
+
+			auto collSurfs = new zonetool::XModelCollSurf_s[asset->numColSurfs]();
+			for (int i = 0; i < asset->numColSurfs; i++) {
+				memcpy(collSurfs[i].bounds.halfSize, asset->colSurf[i].bounds.halfSize, sizeof(Bounds::halfSize));
+				memcpy(collSurfs[i].bounds.midPoint, asset->colSurf[i].bounds.midPoint, sizeof(Bounds::midPoint));
+				collSurfs[i].boneIdx = asset->colSurf[i].boneIdx;
+				collSurfs[i].contents = asset->colSurf[i].contents;
+				collSurfs[i].surfFlags = asset->colSurf[i].surfFlags;
+			}
+			xmodel->collSurfs = reinterpret_cast<std::uint64_t>(collSurfs);
+
+			auto boneInfo = new zonetool::XBoneInfo[asset->numBones]();
+			for (int i = 0; i < asset->numBones; i++) {
+				float radiusSquared = asset->boneInfo[i].radiusSquared;
+				unsigned int radiusSquaredAsInt = round(radiusSquared);
+				zonetool::XBoneInfo info = {
+					radiusSquared,
+					radiusSquaredAsInt,
+				};
+				memcpy(info.bounds.halfSize, asset->boneInfo[i].packedBounds.halfSize, sizeof(Bounds::halfSize));
+				memcpy(info.bounds.midPoint, asset->boneInfo[i].packedBounds.midPoint, sizeof(Bounds::midPoint));
+				memcpy(&boneInfo[i], &info, sizeof(zonetool::XBoneInfo));
+			}
+			xmodel->boneInfo = reinterpret_cast<std::uint64_t>(boneInfo);
+
+			memcpy(xmodel->bounds.halfSize, asset->bounds.halfSize, sizeof(Bounds::halfSize));
+			memcpy(xmodel->bounds.midPoint, asset->bounds.midPoint, sizeof(Bounds::midPoint));
+
+			auto invHighMipRadius = new unsigned short[xmodel->numsurfs]();
+			for (int i = 0; i < xmodel->numsurfs; i++) {
+				invHighMipRadius[i] = 0;
+			}
+			xmodel->invHighMipRadius = reinterpret_cast<std::uint64_t>(invHighMipRadius);
+
 			return xmodel;
 		}
 
@@ -327,7 +367,7 @@ namespace ZoneTool
 			const char* name = reinterpret_cast<const char*>(asset->name);
 			const auto path = "xmodel\\"s + name + ".xmodel_export";
 
-			AssetDumper dump;
+			zonetool::assetmanager::dumper dump;
 			if (!dump.open(path))
 			{
 				return;
