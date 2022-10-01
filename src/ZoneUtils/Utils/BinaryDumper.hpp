@@ -64,6 +64,12 @@ namespace ZoneTool
 			}
 		}
 
+		void write_string_internal(const uint64_t ptr)
+		{
+			const char* str = reinterpret_cast<const char*>(ptr);
+			write_string_internal(str);
+		}
+
 	public:
 		AssetDumper()
 		{

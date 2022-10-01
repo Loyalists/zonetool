@@ -12,6 +12,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <windows.h>
+#include <shlwapi.h>
 
 #undef min
 #undef max

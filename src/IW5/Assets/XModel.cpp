@@ -400,6 +400,11 @@ namespace ZoneTool
 			buf->pop_stream();
 		}
 
+		zonetool::XModel* IXModel::ConvertXModel(XModel* asset)
+		{
+			return nullptr;
+		}
+
 		void IXModel::dump(XModel* asset, const std::function<const char* (std::uint16_t)>& convertToString)
 		{
 			AssetDumper dump;
@@ -445,6 +450,120 @@ namespace ZoneTool
 			// subassets
 			dump.dump_asset(asset->physPreset);
 			dump.dump_asset(asset->physCollmap);
+
+			dump.close();
+		}
+
+		void IXModel::dump_converted(zonetool::XModel* asset, const std::function<const char* (std::uint16_t)>& convertToString)
+		{
+			const char* name = reinterpret_cast<const char*>(asset->name);
+			const auto path = "xmodel\\"s + name + ".xmodel_export";
+
+			AssetDumper dump;
+			if (!dump.open(path))
+			{
+				return;
+			}
+
+			// asset
+			dump.dump_single(asset);
+			dump.dump_string(name);
+
+			// tags
+			auto boneNames = reinterpret_cast<zonetool::scr_string_t*>(asset->boneNames);
+			dump.dump_array(boneNames, asset->numBones);
+			for (unsigned char i = 0; i < asset->numBones; i++)
+			{
+				dump.dump_string(convertToString(boneNames[i]));
+			}
+
+			// basic info
+			auto parentList = reinterpret_cast<unsigned char*>(asset->parentList);
+			auto tagAngles = reinterpret_cast<zonetool::XModelAngle*>(asset->tagAngles);
+			auto tagPositions = reinterpret_cast<zonetool::XModelTagPos*>(asset->tagPositions);
+			auto partClassification = reinterpret_cast<unsigned char*>(asset->partClassification);
+			auto baseMat = reinterpret_cast<zonetool::DObjAnimMat*>(asset->baseMat);
+			auto reactiveMotionTweaks = reinterpret_cast<zonetool::ReactiveMotionModelTweaks*>(asset->reactiveMotionTweaks);
+			auto collSurfs = reinterpret_cast<zonetool::XModelCollSurf_s*>(asset->collSurfs);
+			auto boneInfo = reinterpret_cast<zonetool::XBoneInfo*>(asset->boneInfo);
+			auto invHighMipRadius = reinterpret_cast<unsigned short*>(asset->invHighMipRadius);
+			dump.dump_array(parentList, asset->numBones - asset->numRootBones);
+			dump.dump_array(tagAngles, asset->numBones - asset->numRootBones);
+			dump.dump_array(tagPositions, asset->numBones - asset->numRootBones);
+			dump.dump_array(partClassification, asset->numBones);
+			dump.dump_array(baseMat, asset->numBones);
+			dump.dump_single(reactiveMotionTweaks);
+			dump.dump_array(collSurfs, asset->numCollSurfs);
+			dump.dump_array(boneInfo, asset->numBones);
+			dump.dump_array(invHighMipRadius, asset->numsurfs);
+
+			// surfaces
+			auto materialHandles = reinterpret_cast<zonetool::Material**>(asset->materialHandles);
+			dump.dump_array(materialHandles, asset->numsurfs);
+			for (unsigned char i = 0; i < asset->numsurfs; i++)
+			{
+				dump.dump_asset(materialHandles[i]);
+			}
+
+			// lods
+			auto lodInfo = reinterpret_cast<zonetool::XModelLodInfo*>(asset->lodInfo);
+			for (auto i = 0; i < 6; i++)
+			{
+				auto modelSurfs = reinterpret_cast<zonetool::XModelSurfs*>(lodInfo[i].modelSurfs);
+				dump.dump_asset(modelSurfs);
+			}
+
+			// physics subassets
+			auto physPreset = reinterpret_cast<zonetool::PhysPreset*>(asset->physPreset);
+			auto physCollmap = reinterpret_cast<zonetool::PhysCollmap*>(asset->physCollmap);
+			dump.dump_asset(physPreset);
+			dump.dump_asset(physCollmap);
+
+			// weights
+			auto weightNames = reinterpret_cast<zonetool::scr_string_t*>(asset->weightNames);
+			dump.dump_array(weightNames, asset->numberOfWeights);
+			for (unsigned short i = 0; i < asset->numberOfWeights; i++)
+			{
+				dump.dump_string(convertToString(weightNames[i]));
+			}
+
+			// blendshapeweights
+			auto blendShapeWeightMap = reinterpret_cast<zonetool::BlendShapeWeightMap*>(asset->blendShapeWeightMap);
+			dump.dump_array(blendShapeWeightMap, asset->numberOfWeightMaps);
+
+			// mdao
+			auto mdaoVolumes = reinterpret_cast<zonetool::MdaoVolume*>(asset->mdaoVolumes);
+			dump.dump_array(mdaoVolumes, asset->mdaoVolumeCount);
+			for (auto i = 0; i < asset->mdaoVolumeCount; i++)
+			{
+				auto volumeData = reinterpret_cast<zonetool::GfxImage*>(mdaoVolumes->volumeData);
+				dump.dump_asset(volumeData);
+			}
+
+			// extra models
+			auto compositeModels = reinterpret_cast<zonetool::XModel**>(asset->compositeModels);
+			dump.dump_array(compositeModels, asset->numCompositeModels);
+			for (char i = 0; i < asset->numCompositeModels; i++)
+			{
+				dump.dump_asset(compositeModels[i]);
+			}
+
+			// skeletonscript subasset
+			auto skeletonScript = reinterpret_cast<zonetool::SkeletonScript*>(asset->skeletonScript);
+			dump.dump_asset(skeletonScript);
+
+			// bone physics
+			auto bonePhysics = reinterpret_cast<zonetool::XPhysBoneInfo*>(asset->bonePhysics);
+			dump.dump_array(bonePhysics, asset->numBonePhysics);
+			for (char i = 0; i < asset->numBonePhysics; i++)
+			{
+				auto physPreset = reinterpret_cast<zonetool::PhysPreset*>(bonePhysics[i].physPreset);
+				auto physContraint = reinterpret_cast<zonetool::PhysConstraint*>(bonePhysics[i].physContraint);
+				auto physCollmap = reinterpret_cast<zonetool::PhysCollmap*>(bonePhysics[i].physCollmap);
+				dump.dump_asset(physPreset);
+				dump.dump_asset(physContraint);
+				dump.dump_asset(physCollmap);
+			}
 
 			dump.close();
 		}
