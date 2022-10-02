@@ -286,15 +286,24 @@ namespace ZoneTool
 
 			auto materialHandles = new zonetool::Material * [asset->numSurfaces]();
 			for (int i = 0; i < asset->numSurfaces; i++) {
-				auto name = reinterpret_cast<std::uint64_t>(asset->materials[i]->name);
+				const char* name = asset->materials[i]->name;
+				auto casted_name = reinterpret_cast<std::uint64_t>(name);
+				//zonetool::MaterialInfo info = {
+				//	.name = casted_name,
+				//};
 				materialHandles[i] = new zonetool::Material{
-					.name = name
+					.name = casted_name
 				};
 			}
 			xmodel->materialHandles = reinterpret_cast<std::uint64_t>(materialHandles);
 
 			auto& lodInfo = xmodel->lodInfo;
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 6; i++) {
+				if (i >= 4) {
+					lodInfo[i].modelSurfs = reinterpret_cast<std::uint64_t>(nullptr);
+					continue;
+				}
+
 				lodInfo[i].dist = asset->lods[i].dist;
 				lodInfo[i].numsurfs = asset->lods[i].numSurfacesInLod;
 				lodInfo[i].surfIndex = asset->lods[i].surfIndex;
@@ -314,6 +323,9 @@ namespace ZoneTool
 					};
 
 					lodInfo[i].modelSurfs = reinterpret_cast<std::uint64_t>(modelSurfs);
+				}
+				else {
+					lodInfo[i].modelSurfs = reinterpret_cast<std::uint64_t>(nullptr);
 				}
 			}
 
@@ -410,11 +422,20 @@ namespace ZoneTool
 
 			// surfaces
 			auto materialHandles = reinterpret_cast<zonetool::Material**>(asset->materialHandles);
-			dump.dump_array(materialHandles, asset->numsurfs);
+			std::uint64_t* materialHandles_casted = new std::uint64_t[asset->numsurfs]();
 			for (unsigned char i = 0; i < asset->numsurfs; i++)
 			{
-				dump.dump_asset(materialHandles[i]);
+				materialHandles_casted[i] = reinterpret_cast<std::uint64_t>(materialHandles[i]);
 			}
+
+			dump.dump_array(materialHandles_casted, asset->numsurfs);
+			for (unsigned char i = 0; i < asset->numsurfs; i++)
+			{
+				auto material = reinterpret_cast<zonetool::Material*>(materialHandles_casted[i]);
+				dump.dump_asset(material);
+			}
+
+			delete[] materialHandles_casted;
 
 			// lods
 			auto lodInfo = reinterpret_cast<zonetool::XModelLodInfo*>(asset->lodInfo);
@@ -453,10 +474,24 @@ namespace ZoneTool
 
 			// extra models
 			auto compositeModels = reinterpret_cast<zonetool::XModel**>(asset->compositeModels);
-			dump.dump_array(compositeModels, asset->numCompositeModels);
+			std::uint64_t* compositeModels_casted = nullptr;
+			if (asset->numCompositeModels > 0) {
+				compositeModels_casted = new std::uint64_t[asset->numCompositeModels]();
+				for (unsigned char i = 0; i < asset->numCompositeModels; i++)
+				{
+					compositeModels_casted[i] = reinterpret_cast<std::uint64_t>(compositeModels[i]);
+				}
+			}
+
+			dump.dump_array(compositeModels_casted, asset->numCompositeModels);
 			for (char i = 0; i < asset->numCompositeModels; i++)
 			{
-				dump.dump_asset(compositeModels[i]);
+				auto model = reinterpret_cast<zonetool::XModel*>(compositeModels_casted[i]);
+				dump.dump_asset(model);
+			}
+
+			if (asset->numCompositeModels > 0) {
+				delete[] compositeModels_casted;
 			}
 
 			// skeletonscript subasset
