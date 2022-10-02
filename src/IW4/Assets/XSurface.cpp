@@ -237,17 +237,19 @@ namespace ZoneTool
 				+ asset->vertexInfo.vertCount[2]
 				+ asset->vertexInfo.vertCount[3];
 
-			auto packedMotionVerts0 = new zonetool::GfxPackedMotionVertex[asset->vertCount]();
+			auto packedVerts0 = new zonetool::GfxPackedVertex[asset->vertCount]();
 			auto unknown0 = new zonetool::UnknownXSurface0[asset->vertCount]();
 
 			for (int v = 0; v < asset->vertCount; v++) {
-				auto& vert = packedMotionVerts0[v];
+				auto& vert = packedVerts0[v];
 				memcpy(vert.xyz, asset->verticies[v].xyz, sizeof(GfxPackedVertex::xyz));
-				vert.binormalSignAndHeight = asset->verticies[v].binormalSign;
+				vert.binormalSign = asset->verticies[v].binormalSign;
 				unsigned char arr[4];
-				memcpy(arr, asset->verticies[v].color.array, sizeof(arr));
+				for (int j = 0; j < 4; j++) {
+					arr[j] = static_cast<unsigned char>(asset->verticies[v].color.array[j]);
+				}
 				//wtf is this
-				vert.pieceIndex = {
+				vert.color = {
 					{arr[0], arr[1], arr[2], arr[3]},
 				};
 				vert.texCoord = {
@@ -264,10 +266,13 @@ namespace ZoneTool
 				unknown0[v].normal = vert.normal;
 			}
 
-			surf->verts0.packedMotionVerts0 = reinterpret_cast<std::uint64_t>(packedMotionVerts0);
+			surf->verts0.packedMotionVerts0 = 0;
 			surf->verts0.packedVerts0 = 0;
 			surf->verts0.verts0 = 0;
 			surf->unknown0 = reinterpret_cast<std::uint64_t>(unknown0);
+
+			// everybody gangsta until reinterpret_cast returns 0
+			surf->verts0.packedVerts0 = reinterpret_cast<std::uint64_t>(packedVerts0);
 
 			auto triIndices = new zonetool::Face[asset->triCount]();
 			auto triIndices2 = new zonetool::Face[asset->triCount]();
@@ -461,28 +466,12 @@ namespace ZoneTool
 				dump.dump_raw(tensionAccumTable, 32 * surfs[i].vertCount);
 
 				//DEBUG
-				//int blendVertsDataLength = surfs[i].blendVertCounts[0]
-				//	+ 3 * surfs[i].blendVertCounts[1]
-				//	+ 5 * surfs[i].blendVertCounts[2]
-				//	+ 7 * surfs[i].blendVertCounts[3];
-
-				//int blendVertsTotal = surfs[i].blendVertCounts[0]
-				//	+ surfs[i].blendVertCounts[1]
-				//	+ surfs[i].blendVertCounts[2]
-				//	+ surfs[i].blendVertCounts[3];
-
-				//ZONETOOL_INFO("surf: %d", i);
 				//ZONETOOL_INFO("vertCount: %d", surfs[i].vertCount);
 				//ZONETOOL_INFO("triCount: %d", surfs[i].triCount);
-				//for (int j = 0; j < surfs[i].vertCount; j++) {
-				//	auto packedMotionVerts0 = reinterpret_cast<zonetool::GfxPackedMotionVertex*>(surfs[i].verts0.packedMotionVerts0);
-				//	ZONETOOL_INFO("xyz: %f %f %f", packedMotionVerts0[j].xyz[0], packedMotionVerts0[j].xyz[1], packedMotionVerts0[j].xyz[2]);
-				//}
-
-				//for (int j = 0; j < blendVertsDataLength; j++) {
-				//	int weight = reinterpret_cast<int>(blendVerts);
-				//	ZONETOOL_INFO("blendVert: %d", weight);
-				//}
+				//auto packedVerts0 = reinterpret_cast<zonetool::GfxPackedVertex*>(surfs[i].verts0.packedVerts0);
+				//ZONETOOL_INFO("packedVerts0: %p", packedVerts0);
+				//ZONETOOL_INFO("rigidVertLists: %p", rigidVertLists);
+				//ZONETOOL_INFO("surfs[i].rigidVertListCount: %d", surfs[i].rigidVertListCount);
 			}
 
 			dump.close();

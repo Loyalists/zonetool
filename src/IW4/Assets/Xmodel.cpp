@@ -281,6 +281,9 @@ namespace ZoneTool
 			xmodel->partClassification = reinterpret_cast<std::uint64_t>(partClassification);
 			xmodel->baseMat = reinterpret_cast<std::uint64_t>(baseMat);
 
+			auto reactiveMotionTweaks = new zonetool::ReactiveMotionModelTweaks();
+			xmodel->reactiveMotionTweaks = reinterpret_cast<std::uint64_t>(reactiveMotionTweaks);
+
 			auto materialHandles = new zonetool::Material * [asset->numSurfaces]();
 			for (int i = 0; i < asset->numSurfaces; i++) {
 				auto name = reinterpret_cast<std::uint64_t>(asset->materials[i]->name);
@@ -472,6 +475,19 @@ namespace ZoneTool
 				dump.dump_asset(physContraint);
 				dump.dump_asset(physCollmap);
 			}
+
+			//DEBUG
+			//ZONETOOL_INFO("parentList: %p", parentList);
+			//ZONETOOL_INFO("tagAngles: %p", tagAngles);
+			//ZONETOOL_INFO("tagPositions: %p", tagPositions);
+			//ZONETOOL_INFO("partClassification: %p", partClassification);
+			//ZONETOOL_INFO("baseMat: %p", baseMat);
+			//ZONETOOL_INFO("collSurfs: %p", collSurfs);
+			//ZONETOOL_INFO("boneInfo: %p", boneInfo);
+			//ZONETOOL_INFO("baseMat: %p", baseMat);
+			//ZONETOOL_INFO("invHighMipRadius: %p", invHighMipRadius);
+			//ZONETOOL_INFO("materialHandles: %p", materialHandles);
+			//ZONETOOL_INFO("lodInfo: %p", lodInfo);
 
 			dump.close();
 		}
