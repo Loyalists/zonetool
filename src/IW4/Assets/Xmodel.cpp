@@ -228,7 +228,7 @@ namespace ZoneTool
 			END_LOG_STREAM;
 			buf->pop_stream();
 		}
-		
+
 		zonetool::XModel* IXModel::ConvertXModel(XModel* asset)
 		{
 			const auto name = reinterpret_cast<std::uint64_t>(asset->name);
@@ -281,8 +281,8 @@ namespace ZoneTool
 			xmodel->partClassification = reinterpret_cast<std::uint64_t>(partClassification);
 			xmodel->baseMat = reinterpret_cast<std::uint64_t>(baseMat);
 
-			auto reactiveMotionTweaks = new zonetool::ReactiveMotionModelTweaks();
-			xmodel->reactiveMotionTweaks = reinterpret_cast<std::uint64_t>(reactiveMotionTweaks);
+			//auto reactiveMotionTweaks = new zonetool::ReactiveMotionModelTweaks();
+			//xmodel->reactiveMotionTweaks = reinterpret_cast<std::uint64_t>(reactiveMotionTweaks);
 
 			auto materialHandles = new zonetool::Material * [asset->numSurfaces]();
 			for (int i = 0; i < asset->numSurfaces; i++) {
@@ -523,7 +523,6 @@ namespace ZoneTool
 			//ZONETOOL_INFO("invHighMipRadius: %p", invHighMipRadius);
 			//ZONETOOL_INFO("materialHandles: %p", materialHandles);
 			//ZONETOOL_INFO("lodInfo: %p", lodInfo);
-
 			dump.close();
 		}
 	}
