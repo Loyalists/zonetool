@@ -319,7 +319,7 @@ namespace ZoneTool
 				// Read value for 2
 				Weights[WeightDataIndex].WeightValues[1] = blendVerts[currentPosition++];
 				// Read 1 ID (3)
-				Weights[WeightDataIndex].BoneValues[2] = blendVerts[currentPosition++];
+				Weights[WeightDataIndex].BoneValues[2] = (blendVerts[currentPosition++] / 64);
 				// Read value for 3
 				Weights[WeightDataIndex].WeightValues[2] = blendVerts[currentPosition++];
 				// Read 1 ID (4)
@@ -388,14 +388,12 @@ namespace ZoneTool
 				unknown0[v].normal = vert.normal;
 			}
 
-			surf->verts0.packedMotionVerts0 = 0;
-			surf->verts0.packedVerts0 = 0;
-			surf->verts0.verts0 = 0;
 			surf->unknown0 = reinterpret_cast<std::uint64_t>(unknown0);
 
 			// everybody gangsta until reinterpret_cast returns 0
 			surf->verts0.packedVerts0 = reinterpret_cast<std::uint64_t>(packedVerts0);
 			surf->verts0.packedMotionVerts0 = surf->verts0.packedVerts0;
+			surf->verts0.verts0 = surf->verts0.packedVerts0;
 
 			auto triIndices = new zonetool::Face[asset->triCount]();
 			auto triIndices2 = new zonetool::Face[asset->triCount]();
@@ -486,6 +484,8 @@ namespace ZoneTool
 				// }
 				// surf->tensionAccumTable = reinterpret_cast<std::uint64_t>(tensionAccumTable);
 			}
+
+			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
 		}
 
 		void IXSurface::dump(XModelSurfs* asset)
@@ -498,14 +498,15 @@ namespace ZoneTool
 				ConvertXSurface(&surfs[i], &asset->surfs[i]);
 			}
 
-			auto converted_asset = new zonetool::XModelSurfs{
-				.name = name,
+			zonetool::XModelSurfs* modelSurfs = nullptr;
+			modelSurfs = new zonetool::XModelSurfs{
+				.name = reinterpret_cast<std::uint64_t>(asset->name),
 				.surfs = reinterpret_cast<std::uint64_t>(surfs),
 				.numsurfs = asset->numsurfs,
-				.partBits = {0},
 			};
+			memcpy(modelSurfs->partBits, asset->partBits, sizeof(XModelSurfs::partBits));
 
-			dump_converted(converted_asset);
+			dump_converted(modelSurfs);
 		}
 
 		void IXSurface::dump_converted(zonetool::XModelSurfs* asset)

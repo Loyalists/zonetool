@@ -243,6 +243,7 @@ namespace ZoneTool
 			xmodel->numBonePhysics = 0;
 			xmodel->numCompositeModels = 0;
 			xmodel->scale = 1.0;
+			xmodel->noScalePartBits[0] = 1065353216;
 
 			zonetool::scr_string_t* boneNames = new zonetool::scr_string_t[asset->numBones]();
 			for (int b = 0; b < asset->numBones; b++) {
@@ -308,6 +309,7 @@ namespace ZoneTool
 				lodInfo[i].numsurfs = asset->lods[i].numSurfacesInLod;
 				lodInfo[i].surfIndex = asset->lods[i].surfIndex;
 				lodInfo[i].surfs = 0;
+				memcpy(lodInfo[i].partBits, asset->lods[i].partBits, sizeof(XModelLodInfo::partBits));
 
 				if (asset->lods[i].surfaces) {
 					auto surfs = new zonetool::XSurface[lodInfo[i].numsurfs]();
@@ -315,12 +317,13 @@ namespace ZoneTool
 						IXSurface::ConvertXSurface(&surfs[j], &asset->lods[i].surfaces->surfs[j]);
 					}
 
-					auto modelSurfs = new zonetool::XModelSurfs{
+					zonetool::XModelSurfs* modelSurfs = nullptr;
+					modelSurfs = new zonetool::XModelSurfs{
 						.name = reinterpret_cast<std::uint64_t>(asset->lods[i].surfaces->name),
 						.surfs = reinterpret_cast<std::uint64_t>(surfs),
 						.numsurfs = asset->lods[i].surfaces->numsurfs,
-						.partBits = {0},
 					};
+					memcpy(modelSurfs->partBits, asset->lods[i].surfaces->partBits, sizeof(XModelSurfs::partBits));
 
 					lodInfo[i].modelSurfs = reinterpret_cast<std::uint64_t>(modelSurfs);
 				}
@@ -364,7 +367,7 @@ namespace ZoneTool
 
 			auto invHighMipRadius = new unsigned short[xmodel->numsurfs]();
 			for (int i = 0; i < xmodel->numsurfs; i++) {
-				invHighMipRadius[i] = 0;
+				invHighMipRadius[i] = 65535;
 			}
 			xmodel->invHighMipRadius = reinterpret_cast<std::uint64_t>(invHighMipRadius);
 
@@ -523,6 +526,7 @@ namespace ZoneTool
 			//ZONETOOL_INFO("invHighMipRadius: %p", invHighMipRadius);
 			//ZONETOOL_INFO("materialHandles: %p", materialHandles);
 			//ZONETOOL_INFO("lodInfo: %p", lodInfo);
+			ZONETOOL_INFO("name: %s", name);
 			dump.close();
 		}
 	}
