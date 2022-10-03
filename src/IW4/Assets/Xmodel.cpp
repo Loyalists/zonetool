@@ -352,13 +352,9 @@ namespace ZoneTool
 			for (int i = 0; i < asset->numBones; i++) {
 				float radiusSquared = asset->boneInfo[i].radiusSquared;
 				unsigned int radiusSquaredAsInt = round(radiusSquared);
-				zonetool::XBoneInfo info = {
-					radiusSquared,
-					radiusSquaredAsInt,
-				};
-				memcpy(info.bounds.halfSize, asset->boneInfo[i].packedBounds.halfSize, sizeof(Bounds::halfSize));
-				memcpy(info.bounds.midPoint, asset->boneInfo[i].packedBounds.midPoint, sizeof(Bounds::midPoint));
-				memcpy(&boneInfo[i], &info, sizeof(zonetool::XBoneInfo));
+				memcpy(boneInfo[i].bounds.halfSize, asset->boneInfo[i].packedBounds.halfSize, sizeof(Bounds::halfSize));
+				memcpy(boneInfo[i].bounds.midPoint, asset->boneInfo[i].packedBounds.midPoint, sizeof(Bounds::midPoint));
+				boneInfo[i].radiusSquared = radiusSquared;
 			}
 			xmodel->boneInfo = reinterpret_cast<std::uint64_t>(boneInfo);
 
