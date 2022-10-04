@@ -501,8 +501,9 @@ namespace ZoneTool
 		// convert all args to std::string
 		for (int i = 0; i < nArgs; i++)
 		{
+			
 			auto curArg = std::wstring(szArglist[i]);
-			args[i] = std::string(curArg.begin(), curArg.end());
+			args[i] = std::string(reinterpret_cast<char *>(curArg.data()), curArg.size() * sizeof(wchar_t));
 		}
 
 		// return arguments

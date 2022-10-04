@@ -31,17 +31,11 @@ workspace "zonetool"
 
 	platforms {
 		"x86",
-		"x64"
 	}
 
 	filter "platforms:x86"
 		architecture "x86"
 		defines "CPU_32BIT"
-	filter {}
-
-	filter "platforms:x64"
-		architecture "x86_64"
-		defines "CPU_64BIT"
 	filter {}
 
 	buildoptions "/std:c++latest"
@@ -109,11 +103,13 @@ workspace "zonetool"
 	include "src/ImgPak.lua"
 	include "src/ZoneTool.lua"
 	include "src/ZoneUtils.lua"
+	include "src/H2.lua"
 	include "src/IW3.lua"
 	include "src/IW4.lua"
 	include "src/IW5.lua"
 	include "src/CODO.lua"
-
+	
+	H2:project()
 	ImgPak:project()
 	ZoneTool:project()
 	ZoneUtils:project()
@@ -121,3 +117,4 @@ workspace "zonetool"
 	IW4:project()
 	IW5:project()
 	CODO:project()
+	

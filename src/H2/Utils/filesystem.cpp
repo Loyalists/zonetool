@@ -1,6 +1,5 @@
-#include "stdafx.hpp"
-#include "filesystem.hpp"
 #include <filesystem>
+#include "filesystem.hpp"
 
 namespace zonetool
 {

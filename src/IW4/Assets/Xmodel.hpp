@@ -7,7 +7,6 @@
 // License: GNU GPL v3.0
 // ========================================================
 #pragma once
-#include "../H2/zonetool/structs.hpp"
 
 namespace ZoneTool
 {
@@ -40,9 +39,6 @@ namespace ZoneTool
 			static XModel* remove_attachments(XModel* asset);
 			static void dump(XModel* asset,
 			                 const std::function<const char*(uint16_t)>& convertToString = SL_ConvertToString);
-			static void dump_converted(zonetool::XModel* asset,
-				const std::function<const char* (std::uint16_t)>& convertToString = SL_ConvertToString);
-			static zonetool::XModel* ConvertXModel(XModel* asset);
 		};
 	}
 }

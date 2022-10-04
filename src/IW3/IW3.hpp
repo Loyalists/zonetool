@@ -11,6 +11,7 @@
 #include <ZoneUtils.hpp>
 #include "Functions.hpp"
 #include "Structs.hpp"
+#include "H2/Structs.hpp"
 
 #include "Assets/XModel.hpp"
 #include "Assets/Material.hpp"

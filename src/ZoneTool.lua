@@ -31,6 +31,7 @@ function ZoneTool:project()
 
         -- Linked projects
         self:include()
+        H2:link()
         IW3:link()
         IW4:link()
         IW5:link()
