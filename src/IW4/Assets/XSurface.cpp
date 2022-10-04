@@ -222,8 +222,8 @@ namespace ZoneTool
 			// from: https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L577
 			// The index of read weight data
 			uint32_t WeightDataIndex = 0;
+			int blendVertsTotal = asset->blendVertCounts[0] + asset->blendVertCounts[1] + asset->blendVertCounts[2] + asset->blendVertCounts[3];
 			auto blendVerts = reinterpret_cast<zonetool::XBlendInfo*>(asset->blendVerts);
-			int blendVertsDataLength = asset->blendVertCounts[0] + 3 * asset->blendVertCounts[1] + 5 * asset->blendVertCounts[2] + 7 * asset->blendVertCounts[3];
 			int currentPosition = 0;
 			struct WeightsData {
 				unsigned short BoneValues[4];
@@ -232,6 +232,9 @@ namespace ZoneTool
 			};
 
 			std::vector<WeightsData> Weights = std::vector<WeightsData>(asset->vertCount);
+			//ZONETOOL_INFO("vertCount: %d", asset->vertCount);
+			//ZONETOOL_INFO("blendVertsTotal: %d", blendVertsTotal);
+			//ZONETOOL_INFO("rigidVertListCount: %d", asset->rigidVertListCount);
 
 			// Prepare the simple, rigid weights
 			for (uint32_t i = 0; i < asset->rigidVertListCount; i++)
@@ -242,12 +245,18 @@ namespace ZoneTool
 
 				// Read rigid struct, QS does not have the pointer
 				auto RigidInfo = reinterpret_cast<zonetool::XRigidVertList*>(asset->rigidVertLists);
-				VertexCount = RigidInfo->vertCount;
-				BoneIndex = RigidInfo->boneOffset / 64;
+				VertexCount = RigidInfo[i].vertCount;
+				BoneIndex = RigidInfo[i].boneOffset / 64;
+				//ZONETOOL_INFO("VertexCount: %d", VertexCount);
+				//ZONETOOL_INFO("BoneIndex: %d", BoneIndex);
 
 				// Apply bone ids properly
 				for (uint32_t w = 0; w < VertexCount; w++)
 				{
+					if (WeightDataIndex >= asset->vertCount) {
+						// how could this even happen
+						break;
+					}
 					Weights[WeightDataIndex].WeightCount = 1;
 					// Apply
 					Weights[WeightDataIndex].BoneValues[0] = BoneIndex;
@@ -347,6 +356,48 @@ namespace ZoneTool
 			}
 		}
 
+		std::vector<float> IXSurface::UnpackVector(unsigned int packed)
+		{
+			// https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L527
+			// Unpack a normal, used in [WAW, BO, MW, MW2, MW3]
+
+			// Convert to packed structure
+			uint8_t* PackedBytes = reinterpret_cast<uint8_t*>(&packed);
+
+			// Decode the scale of the vector
+			float DecodeScale = (float)((float)PackedBytes[3] - -192.0) / 32385.0f;
+
+			return std::vector<float>{
+				(float)((float)(uint8_t)PackedBytes[0] - 127.0) * DecodeScale,
+				(float)((float)(uint8_t)PackedBytes[1] - 127.0) * DecodeScale,
+				(float)((float)(uint8_t)PackedBytes[2] - 127.0) * DecodeScale};
+		}
+
+		unsigned int IXSurface::PackVector(const std::vector<float>& vec)
+		{
+			// https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L563
+			//return Vector3(
+			//	(float)((float)((float)(PackedNormal->PackedInteger & 0x3FF) / 1023.0) * 2.0) - 1.0f,
+			//	(float)((float)((float)((PackedNormal->PackedInteger >> 10) & 0x3FF) / 1023.0) * 2.0) - 1.0f,
+			//	(float)((float)((float)((PackedNormal->PackedInteger >> 20) & 0x3FF) / 1023.0) * 2.0) - 1.0f);
+
+			unsigned int x = (((unsigned int)(((vec[0] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
+			unsigned int y = (((unsigned int)(((vec[1] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
+			unsigned int z = (((unsigned int)(((vec[2] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
+
+			unsigned int packedVec = x + y << 10 + z << 20;
+
+			return packedVec;
+		}
+
+		std::vector<uint16_t> IXSurface::UnpackUV(unsigned int packed)
+		{
+			uint16_t* unpackedUV = reinterpret_cast<uint16_t*>(&packed);
+			return std::vector<uint16_t>{
+				unpackedUV[0], unpackedUV[1]
+			};
+		}
+
 		void IXSurface::ConvertXSurface(zonetool::XSurface* surf, XSurface* asset)
 		{
 			// character assets have this set as 6 while weapons set this as 2...
@@ -373,16 +424,28 @@ namespace ZoneTool
 				{
 					arr[j] = static_cast<unsigned char>(asset->verticies[v].color.array[j]);
 				}
-				// wtf is this
+				
+				//reverse the UV axis
+				auto unpackedUV = UnpackUV(asset->verticies[v].texCoord.packed);
+				unsigned int packedUV = ((unsigned int)unpackedUV[1]) + ((unsigned int)unpackedUV[0] << 16);
+				//auto unpackedUV2 = UnpackUV(packedUV);
+				//ZONETOOL_INFO("unpackedUV: %d %d", unpackedUV[0], unpackedUV[1]);
+				//ZONETOOL_INFO("unpackedUV2: %d %d", unpackedUV2[0], unpackedUV2[1]);
+
+				auto unpackedNormal = UnpackVector(asset->verticies[v].normal.packed);
+				unsigned int packedNormal = PackVector(unpackedNormal);
+				auto unpackedTangent = UnpackVector(asset->verticies[v].tangent.packed);
+				unsigned int packedTangent = PackVector(unpackedTangent);
+
 				vert.color = {
 					{arr[0], arr[1], arr[2], arr[3]},
 				};
 				vert.texCoord = {
-					.packed = asset->verticies[v].texCoord.packed };
+					.packed = packedUV };
 				vert.normal = {
-					.packed = asset->verticies[v].normal.packed };
+					.packed = packedNormal };
 				vert.tangent = {
-					.packed = asset->verticies[v].tangent.packed };
+					.packed = packedTangent };
 
 				memcpy(unknown0[v].xyz, vert.xyz, sizeof(zonetool::GfxPackedVertex::xyz));
 				unknown0[v].normal = vert.normal;
@@ -464,10 +527,6 @@ namespace ZoneTool
 				}
 				surf->blendVerts = reinterpret_cast<std::uint64_t>(blendVerts);
 
-				auto blendVertsTable = new zonetool::BlendVertsUnknown[asset->vertCount]();
-				surf->blendVertsTable = reinterpret_cast<std::uint64_t>(blendVertsTable);
-				PrepareVertexWeights(surf);
-
 				// auto tensionData = new zonetool::alignCompBufFloat_t[blendVertsTotal]();
 				// for (int j = 0; j < blendVertsTotal; j++)
 				// {
@@ -484,6 +543,10 @@ namespace ZoneTool
 				// }
 				// surf->tensionAccumTable = reinterpret_cast<std::uint64_t>(tensionAccumTable);
 			}
+
+			auto blendVertsTable = new zonetool::BlendVertsUnknown[asset->vertCount]();
+			surf->blendVertsTable = reinterpret_cast<std::uint64_t>(blendVertsTable);
+			PrepareVertexWeights(surf);
 
 			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
 		}
