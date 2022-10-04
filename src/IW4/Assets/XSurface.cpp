@@ -266,6 +266,8 @@ namespace ZoneTool
 				}
 			}
 
+
+
 			// Prepare single bone weights
 			for (uint32_t w = 0; w < asset->blendVertCounts[0]; w++)
 			{
@@ -382,10 +384,10 @@ namespace ZoneTool
 			//	(float)((float)((float)((PackedNormal->PackedInteger >> 20) & 0x3FF) / 1023.0) * 2.0) - 1.0f);
 
 			unsigned int x = (((unsigned int)(((vec[0] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
-			unsigned int y = (((unsigned int)(((vec[1] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
-			unsigned int z = (((unsigned int)(((vec[2] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
+			unsigned int y = (((unsigned int)(((vec[1] + 1.0f) / 2.0) * 1023.0)) & 0x3FF) << 10;
+			unsigned int z = (((unsigned int)(((vec[2] + 1.0f) / 2.0) * 1023.0)) & 0x3FF) << 20;
 
-			unsigned int packedVec = x + y << 10 + z << 20;
+			unsigned int packedVec = x + y + z;
 
 			return packedVec;
 		}
@@ -475,33 +477,33 @@ namespace ZoneTool
 			auto rigidVertLists = new zonetool::XRigidVertList[asset->vertListCount]();
 			for (int j = 0; j < asset->vertListCount; j++)
 			{
-				rigidVertLists[j].boneOffset = asset->rigidVertLists->boneOffset;
-				rigidVertLists[j].vertCount = asset->rigidVertLists->vertCount;
-				rigidVertLists[j].triOffset = asset->rigidVertLists->triOffset;
-				rigidVertLists[j].triCount = asset->rigidVertLists->triCount;
+				rigidVertLists[j].boneOffset = asset->rigidVertLists[j].boneOffset;
+				rigidVertLists[j].vertCount = asset->rigidVertLists[j].vertCount;
+				rigidVertLists[j].triOffset = asset->rigidVertLists[j].triOffset;
+				rigidVertLists[j].triCount = asset->rigidVertLists[j].triCount;
 				rigidVertLists[j].collisionTree = 0;
 
-				if (asset->rigidVertLists->collisionTree)
+				if (asset->rigidVertLists[j].collisionTree)
 				{
 					auto collisionTree = new zonetool::XSurfaceCollisionTree();
-					memcpy(collisionTree->trans, asset->rigidVertLists->collisionTree->trans, sizeof(XSurfaceCollisionTree::trans));
-					memcpy(collisionTree->scale, asset->rigidVertLists->collisionTree->scale, sizeof(XSurfaceCollisionTree::scale));
-					collisionTree->nodeCount = asset->rigidVertLists->collisionTree->nodeCount;
+					memcpy(collisionTree->trans, asset->rigidVertLists[j].collisionTree->trans, sizeof(XSurfaceCollisionTree::trans));
+					memcpy(collisionTree->scale, asset->rigidVertLists[j].collisionTree->scale, sizeof(XSurfaceCollisionTree::scale));
+					collisionTree->nodeCount = asset->rigidVertLists[j].collisionTree->nodeCount;
 					auto nodes = new zonetool::XSurfaceCollisionNode[collisionTree->nodeCount]();
 					for (int n = 0; n < collisionTree->nodeCount; n++)
 					{
-						memcpy(nodes[n].aabb.mins, asset->rigidVertLists->collisionTree->nodes[n].aabb.mins, sizeof(XSurfaceCollisionAabb::mins));
-						memcpy(nodes[n].aabb.maxs, asset->rigidVertLists->collisionTree->nodes[n].aabb.maxs, sizeof(XSurfaceCollisionAabb::maxs));
-						nodes[n].childBeginIndex = asset->rigidVertLists->collisionTree->nodes[n].childBeginIndex;
-						nodes[n].childCount = asset->rigidVertLists->collisionTree->nodes[n].childCount;
+						memcpy(nodes[n].aabb.mins, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.mins, sizeof(XSurfaceCollisionAabb::mins));
+						memcpy(nodes[n].aabb.maxs, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.maxs, sizeof(XSurfaceCollisionAabb::maxs));
+						nodes[n].childBeginIndex = asset->rigidVertLists[j].collisionTree->nodes[n].childBeginIndex;
+						nodes[n].childCount = asset->rigidVertLists[j].collisionTree->nodes[n].childCount;
 					}
 					collisionTree->nodes = reinterpret_cast<std::uint64_t>(nodes);
 
-					collisionTree->leafCount = asset->rigidVertLists->collisionTree->leafCount;
+					collisionTree->leafCount = asset->rigidVertLists[j].collisionTree->leafCount;
 					auto leafs = new zonetool::XSurfaceCollisionLeaf[collisionTree->leafCount]();
 					for (int n = 0; n < collisionTree->leafCount; n++)
 					{
-						leafs[n].triangleBeginIndex = asset->rigidVertLists->collisionTree->leafs[n].triangleBeginIndex;
+						leafs[n].triangleBeginIndex = asset->rigidVertLists[j].collisionTree->leafs[n].triangleBeginIndex;
 					}
 					collisionTree->leafs = reinterpret_cast<std::uint64_t>(leafs);
 
