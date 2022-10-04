@@ -7,7 +7,6 @@
 // License: GNU GPL v3.0
 // ========================================================
 #pragma once
-#include "../H2/zonetool/structs.hpp"
 
 namespace ZoneTool
 {
@@ -35,12 +34,6 @@ namespace ZoneTool
 			void write(IZone* zone, ZoneBuffer* buffer) override;
 
 			static void dump(XModelSurfs* asset);
-			static void dump_converted(zonetool::XModelSurfs* asset);
-			static void ConvertXSurface(zonetool::XSurface* surf, XSurface* asset);
-			static void PrepareVertexWeights(zonetool::XSurface* asset);
-			static std::vector<float> UnpackVector(unsigned int packed);
-			static unsigned int PackVector(const std::vector<float>& vec);
-			static std::vector<uint16_t> UnpackUV(unsigned int packed);
 		};
 	}
 }

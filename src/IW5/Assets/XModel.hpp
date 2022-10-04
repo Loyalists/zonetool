@@ -7,7 +7,6 @@
 // License: GNU GPL v3.0
 // ========================================================
 #pragma once
-#include <H2/zonetool/structs.hpp>
 
 namespace ZoneTool
 {

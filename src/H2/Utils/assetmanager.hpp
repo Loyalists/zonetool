@@ -297,13 +297,25 @@ namespace zonetool
 			template <typename T>
 			void dump_array(const T* data, std::uint32_t array_size)
 			{
-				dump_array<T>(const_cast<T*>(data), array_size);
+				return dump_array<T>(const_cast<T*>(data), array_size);
+			}
+
+			template <typename T>
+			void dump_array64(uint64_t data, std::uint32_t array_size)
+			{
+				return dump_array<T>(reinterpret_cast<T*>(data), array_size);
 			}
 
 			template <typename T>
 			void dump_single(T* asset)
 			{
 				dump_array<T>(asset, 1);
+			}
+
+			template <typename T>
+			void dump_single64(uint64_t asset)
+			{
+				dump_array<T>(reinterpret_cast<T*>(asset), 1);
 			}
 
 			template <typename T>
@@ -332,6 +344,12 @@ namespace zonetool
 					write_type(DUMP_TYPE_RAW);
 					write_existing(DUMP_NONEXISTING);
 				}
+			}
+
+			template <typename T>
+			void dump_raw64(uint64_t data, std::uint32_t size)
+			{
+				return dump_raw<T>(reinterpret_cast<T*>(data), size);
 			}
 		};
 
