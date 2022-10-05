@@ -194,7 +194,7 @@ namespace ZoneTool
 			static XModelSurfs* convert_from_iw4(IW4::XModelSurfs* asset)
 			{
 				const auto name = reinterpret_cast<std::uint64_t>(asset->name);
-				auto surfs = new H2::XSurface[asset->numsurfs];
+				auto surfs = new H2::XSurface[asset->numsurfs]();
 
 				for (int i = 0; i < asset->numsurfs; i++)
 				{
@@ -208,7 +208,7 @@ namespace ZoneTool
 					.numsurfs = asset->numsurfs,
 				};
 
-				memcpy(modelSurfs->partBits, asset->partBits, sizeof(XModelSurfs::partBits));
+				memcpy(modelSurfs->partBits, asset->partBits, sizeof(IW4::XModelSurfs::partBits));
 				return modelSurfs;
 			}
 
@@ -225,8 +225,8 @@ namespace ZoneTool
 
 				int blendVertsTotal = asset->vertexInfo.vertCount[0] + asset->vertexInfo.vertCount[1] + asset->vertexInfo.vertCount[2] + asset->vertexInfo.vertCount[3];
 
-				auto packedVerts0 = new GfxPackedVertex[asset->vertCount];
-				auto unknown0 = new UnknownXSurface0[asset->vertCount];
+				auto packedVerts0 = new GfxPackedVertex[asset->vertCount]();
+				auto unknown0 = new UnknownXSurface0[asset->vertCount]();
 
 				for (int v = 0; v < asset->vertCount; v++)
 				{
@@ -362,7 +362,7 @@ namespace ZoneTool
 				surf->blendVertsTable = reinterpret_cast<std::uint64_t>(blendVertsTable);
 				PrepareVertexWeights(surf);
 
-				memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
+				memcpy(surf->partBits, asset->partBits, sizeof(IW4::XSurface::partBits));
 			}
 
 			static void dump(XModelSurfs* asset)

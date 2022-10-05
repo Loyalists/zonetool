@@ -87,7 +87,7 @@ namespace ZoneTool
 					lodInfo[i].numsurfs = asset->lods[i].numSurfacesInLod;
 					lodInfo[i].surfIndex = asset->lods[i].surfIndex;
 					lodInfo[i].surfs = 0;
-					memcpy(lodInfo[i].partBits, asset->lods[i].partBits, sizeof(XModelLodInfo::partBits));
+					memcpy(lodInfo[i].partBits, asset->lods[i].partBits, sizeof(IW4::XModelLodInfo::partBits));
 
 					if (asset->lods[i].surfaces) {
 						auto *modelSurfs = new XModelSurfs{
