@@ -387,15 +387,15 @@ namespace ZoneTool
 				{
 					if ((surfs[i].flags & 8) != 0)
 					{
-						dump.dump_array64<GfxPackedMotionVertex*>(surfs[i].verts0.packedMotionVerts0, surfs[i].vertCount);
+						dump.dump_array64<GfxPackedMotionVertex>(surfs[i].verts0.packedMotionVerts0, surfs[i].vertCount);
 					}
 					else
 					{
-						dump.dump_array64<GfxPackedVertex*>(surfs[i].verts0.packedVerts0, surfs[i].vertCount);
+						dump.dump_array64<GfxPackedVertex>(surfs[i].verts0.packedVerts0, surfs[i].vertCount);
 					}
 
-					dump.dump_array64<Face*>(surfs[i].triIndices, surfs[i].triCount);
-					dump.dump_array64<Face*>(surfs[i].triIndices2, surfs[i].triCount);
+					dump.dump_array64<Face>(surfs[i].triIndices, surfs[i].triCount);
+					dump.dump_array64<Face>(surfs[i].triIndices2, surfs[i].triCount);
 
 					auto rigidVertLists = reinterpret_cast<XRigidVertList*>(surfs[i].rigidVertLists);
 					dump.dump_array(rigidVertLists, surfs[i].rigidVertListCount);
@@ -425,16 +425,17 @@ namespace ZoneTool
 						}
 					}
 
+					auto lmapUnwrap = reinterpret_cast<alignVertBufFloat16Vec2_t**>(surfs[i].lmapUnwrap);
 
-					dump.dump_raw64<UnknownXSurface0*>(surfs[i].unknown0, 16 * surfs[i].vertCount);
+					dump.dump_raw64<UnknownXSurface0>(surfs[i].unknown0, 16 * surfs[i].vertCount);
 
-					dump.dump_raw64<XBlendInfo*>(surfs[i].blendVerts, 2 * (surfs[i].blendVertCounts[0] + 3 * surfs[i].blendVertCounts[1] + 5 * surfs[i].blendVertCounts[2] + 7 * surfs[i].blendVertCounts[3] + 9 * surfs[i].blendVertCounts[4] + 11 * surfs[i].blendVertCounts[5] + 13 * surfs[i].blendVertCounts[6] + 15 * surfs[i].blendVertCounts[7]));
-					dump.dump_raw64<BlendVertsUnknown*>(surfs[i].blendVertsTable, 32 * surfs[i].vertCount);
+					dump.dump_raw64<XBlendInfo>(surfs[i].blendVerts, 2 * (surfs[i].blendVertCounts[0] + 3 * surfs[i].blendVertCounts[1] + 5 * surfs[i].blendVertCounts[2] + 7 * surfs[i].blendVertCounts[3] + 9 * surfs[i].blendVertCounts[4] + 11 * surfs[i].blendVertCounts[5] + 13 * surfs[i].blendVertCounts[6] + 15 * surfs[i].blendVertCounts[7]));
+					dump.dump_raw64<BlendVertsUnknown>(surfs[i].blendVertsTable, 32 * surfs[i].vertCount);
 
-					dump.dump_raw64<alignVertBufFloat16Vec2_t**>(surfs[i].lmapUnwrap, 4 * surfs[i].vertCount);
+					dump.dump_raw(lmapUnwrap, 4 * surfs[i].vertCount);
 
-					dump.dump_raw64<alignCompBufFloat_t*>(surfs[i].tensionData, 4 * (surfs[i].blendVertCounts[0] + surfs[i].blendVertCounts[1] + surfs[i].blendVertCounts[2] + surfs[i].blendVertCounts[3] + surfs[i].blendVertCounts[4] + surfs[i].blendVertCounts[5] + surfs[i].blendVertCounts[6] + surfs[i].blendVertCounts[7]));
-					dump.dump_raw64<alignCompBufUShort_t*>(surfs[i].tensionAccumTable, 32 * surfs[i].vertCount);
+					dump.dump_raw64<alignCompBufFloat_t>(surfs[i].tensionData, 4 * (surfs[i].blendVertCounts[0] + surfs[i].blendVertCounts[1] + surfs[i].blendVertCounts[2] + surfs[i].blendVertCounts[3] + surfs[i].blendVertCounts[4] + surfs[i].blendVertCounts[5] + surfs[i].blendVertCounts[6] + surfs[i].blendVertCounts[7]));
+					dump.dump_raw64<alignCompBufUShort_t>(surfs[i].tensionAccumTable, 32 * surfs[i].vertCount);
 
 					// DEBUG
 					//ZONETOOL_INFO("vertCount: %d", surfs[i].vertCount);
