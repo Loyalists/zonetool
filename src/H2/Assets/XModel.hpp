@@ -7,7 +7,7 @@ namespace ZoneTool
         class IXModel
         {
         public:
-            static XModel* convert_from_iw4(IW4::XModel* asset)
+            static XModel* convert_from_iw4(IW4::XModel* asset, const std::function<const char* (uint16_t)>& convertToString)
             {
 				const auto name = reinterpret_cast<std::uint64_t>(asset->name);
 				auto xmodel = new XModel{
@@ -22,6 +22,7 @@ namespace ZoneTool
 				xmodel->numCompositeModels = 0;
 				xmodel->scale = 1.0;
 				xmodel->noScalePartBits[0] = 1065353216;
+				//memcpy(xmodel->noScalePartBits, asset->noScalePartBits, sizeof(asset->noScalePartBits));
 
 				scr_string_t* boneNames = new scr_string_t[asset->numBones]();
 				for (int b = 0; b < asset->numBones; b++) {
@@ -52,7 +53,13 @@ namespace ZoneTool
 				unsigned char* partClassification = new unsigned char[asset->numBones]();
 				auto baseMat = new DObjAnimMat[asset->numBones]();
 				for (int i = 0; i < asset->numBones; i++) {
-					partClassification[i] = asset->partClassification[i];
+					uint16_t boneNameIndex = asset->boneNames[i];
+					std::string boneNameString = convertToString(boneNameIndex);
+					if (boneNameString == "tag_shield_back" || boneNameString == "tag_weapon_left")
+						partClassification[i] = 0x13;
+					else
+						partClassification[i] = asset->partClassification[i];
+
 					memcpy(baseMat[i].quat, asset->animMatrix[i].quat, sizeof(DObjAnimMat::quat));
 					memcpy(baseMat[i].trans, asset->animMatrix[i].trans, sizeof(DObjAnimMat::trans));
 					baseMat[i].transWeight = asset->animMatrix[i].transWeight;
@@ -65,13 +72,16 @@ namespace ZoneTool
 
 				auto materialHandles = new Material * [asset->numSurfaces]();
 				for (int i = 0; i < asset->numSurfaces; i++) {
-					const char* name = asset->materials[i]->name;
-					auto casted_name = reinterpret_cast<std::uint64_t>(name);
-					//MaterialInfo info = {
-					//	.name = casted_name,
-					//};
+					std::string name_str = asset->materials[i]->name;
+					std::string prefix = "mc/";
+					int index = name_str.find(prefix);
+					if (index != std::string::npos) {
+						name_str.replace(index, prefix.length(), "m/");
+					}
+					const char* name2 = strdup(name_str.c_str());
+
 					materialHandles[i] = new Material{
-						.name = casted_name
+						.name = reinterpret_cast<std::uint64_t>(name2)
 					};
 				}
 				xmodel->materialHandles = reinterpret_cast<std::uint64_t>(materialHandles);
@@ -103,6 +113,7 @@ namespace ZoneTool
 
 				xmodel->numLods = asset->numLods;
 				xmodel->collLod = asset->collLod;
+				xmodel->flags = asset->flags;
 				xmodel->numCollSurfs = asset->numColSurfs;
 				xmodel->contents = asset->contents;
 				xmodel->radius = asset->radius;
@@ -132,7 +143,7 @@ namespace ZoneTool
 
 				auto invHighMipRadius = new unsigned short[xmodel->numsurfs]();
 				for (int i = 0; i < xmodel->numsurfs; i++) {
-					invHighMipRadius[i] = 65535;
+					invHighMipRadius[i] = 0;
 				}
 				xmodel->invHighMipRadius = reinterpret_cast<std::uint64_t>(invHighMipRadius);
 

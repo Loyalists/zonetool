@@ -215,7 +215,10 @@ namespace ZoneTool
 			static XSurface* surf_convert_from_iw4(XSurface* surf, IW4::XSurface* asset)
 			{
 				// character assets have this set as 6 while weapons set this as 2...
-				surf->flags = 6;
+				surf->flags = 2;
+				if (asset->deformed) {
+					surf->flags = 6;
+				}
 				surf->vertCount = asset->vertCount;
 				surf->triCount = asset->triCount;
 				memset(surf->blendVertCounts, 0, sizeof(XSurface::blendVertCounts));

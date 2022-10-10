@@ -233,7 +233,7 @@ namespace ZoneTool
 
 		void IXModel::dump(XModel* asset, const std::function<const char*(uint16_t)>& convertToString)
 		{
-			auto* result = H2::IXModel::convert_from_iw4(asset);
+			auto* result = H2::IXModel::convert_from_iw4(asset, convertToString);
 			H2::IXModel::dump(result, convertToString);
 		}
 	}
