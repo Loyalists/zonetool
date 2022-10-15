@@ -143,9 +143,17 @@ namespace ZoneTool
 
 				auto invHighMipRadius = new unsigned short[xmodel->numsurfs]();
 				for (int i = 0; i < xmodel->numsurfs; i++) {
-					invHighMipRadius[i] = 0;
+					invHighMipRadius[i] = 65535;
 				}
 				xmodel->invHighMipRadius = reinterpret_cast<std::uint64_t>(invHighMipRadius);
+
+				//std::string name_str = asset->name;
+				//if (name_str.find("body") != std::string::npos && name_str.find("viewbody") == std::string::npos) {
+				//	auto skeletonScript = new SkeletonScript{
+				//		.name = reinterpret_cast<std::uint64_t>("character_sp_footik")
+				//	};
+				//	xmodel->skeletonScript = reinterpret_cast<std::uint64_t>(skeletonScript);
+				//}
 
 				return xmodel;
             }
