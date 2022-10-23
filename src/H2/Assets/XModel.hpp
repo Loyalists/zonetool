@@ -7,6 +7,86 @@ namespace ZoneTool
         class IXModel
         {
         public:
+			static int convert_surf_flags(int flags)
+			{
+				H2::CSurfaceFlags surf_flags_conversion_table[31]
+				{
+					H2::SURF_FLAG_DEFAULT,
+					H2::SURF_FLAG_BARK,
+					H2::SURF_FLAG_BRICK,
+					H2::SURF_FLAG_CARPET,
+					H2::SURF_FLAG_CLOTH,
+					H2::SURF_FLAG_CONCRETE,
+					H2::SURF_FLAG_DIRT,
+					H2::SURF_FLAG_FLESH,
+					H2::SURF_FLAG_FOLIAGE_DEBRIS,
+					H2::SURF_FLAG_GLASS,
+					H2::SURF_FLAG_GRASS,
+					H2::SURF_FLAG_GRAVEL,
+					H2::SURF_FLAG_ICE,
+					H2::SURF_FLAG_METAL_SOLID,
+					H2::SURF_FLAG_MUD,
+					H2::SURF_FLAG_PAPER,
+					H2::SURF_FLAG_PLASTER,
+					H2::SURF_FLAG_ROCK,
+					H2::SURF_FLAG_SAND,
+					H2::SURF_FLAG_SNOW,
+					H2::SURF_FLAG_WATER_WAIST,
+					H2::SURF_FLAG_WOOD_SOLID,
+					H2::SURF_FLAG_ASPHALT,
+					H2::SURF_FLAG_CERAMIC,
+					H2::SURF_FLAG_PLASTIC_SOLID,
+					H2::SURF_FLAG_RUBBER,
+					H2::SURF_FLAG_CUSHION,
+					H2::SURF_FLAG_FRUIT,
+					H2::SURF_FLAG_PAINTEDMETAL,
+					H2::SURF_FLAG_RIOTSHIELD,
+					H2::SURF_FLAG_SLUSH,
+				};
+
+				int h1_flags = surf_flags_conversion_table[flags >> 20];
+				auto convert = [&](IW4::CSurfaceFlags a, H2::CSurfaceFlags b)
+				{
+					h1_flags |= ((flags & a) != 0) ? b : 0;
+				};
+				convert(IW4::CSurfaceFlags::SURF_FLAG_OPAQUEGLASS, H2::CSurfaceFlags::SURF_FLAG_DEFAULT);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_CLIPMISSILE, H2::CSurfaceFlags::SURF_FLAG_CLIPMISSILE);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_AI_NOSIGHT, H2::CSurfaceFlags::SURF_FLAG_AI_NOSIGHT);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_CLIPSHOT, H2::CSurfaceFlags::SURF_FLAG_CLIPSHOT);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_PLAYERCLIP, H2::CSurfaceFlags::SURF_FLAG_PLAYERCLIP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_MONSTERCLIP, H2::CSurfaceFlags::SURF_FLAG_MONSTERCLIP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_AICLIPALLOWDEATH, H2::CSurfaceFlags::SURF_FLAG_AICLIPALLOWDEATH);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_VEHICLECLIP, H2::CSurfaceFlags::SURF_FLAG_VEHICLECLIP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_ITEMCLIP, H2::CSurfaceFlags::SURF_FLAG_ITEMCLIP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NODROP, H2::CSurfaceFlags::SURF_FLAG_NODROP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NONSOLID, H2::CSurfaceFlags::SURF_FLAG_NONSOLID);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_DETAIL, H2::CSurfaceFlags::SURF_FLAG_DETAIL);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_STRUCTURAL, H2::CSurfaceFlags::SURF_FLAG_STRUCTURAL);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_PORTAL, H2::CSurfaceFlags::SURF_FLAG_PORTAL);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_CANSHOOTCLIP, H2::CSurfaceFlags::SURF_FLAG_CANSHOOTCLIP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_ORIGIN, H2::CSurfaceFlags::SURF_FLAG_ORIGIN);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_SKY, H2::CSurfaceFlags::SURF_FLAG_SKY);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOCASTSHADOW, H2::CSurfaceFlags::SURF_FLAG_NOCASTSHADOW);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_PHYSICSGEOM, H2::CSurfaceFlags::SURF_FLAG_PHYSICSGEOM);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_LIGHTPORTAL, H2::CSurfaceFlags::SURF_FLAG_LIGHTPORTAL);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_OUTDOORBOUNDS, H2::CSurfaceFlags::SURF_FLAG_OUTDOORBOUNDS);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_SLICK, H2::CSurfaceFlags::SURF_FLAG_SLICK);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOIMPACT, H2::CSurfaceFlags::SURF_FLAG_NOIMPACT);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOMARKS, H2::CSurfaceFlags::SURF_FLAG_NOMARKS);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOPENETRATE, H2::CSurfaceFlags::SURF_FLAG_NOPENETRATE);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_LADDER, H2::CSurfaceFlags::SURF_FLAG_LADDER);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NODAMAGE, H2::CSurfaceFlags::SURF_FLAG_NODAMAGE);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_MANTLEON, H2::CSurfaceFlags::SURF_FLAG_MANTLEON);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_MANTLEOVER, H2::CSurfaceFlags::SURF_FLAG_MANTLEOVER);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_STAIRS, H2::CSurfaceFlags::SURF_FLAG_STAIRS);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_SOFT, H2::CSurfaceFlags::SURF_FLAG_SOFT);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOSTEPS, H2::CSurfaceFlags::SURF_FLAG_NOSTEPS);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NODRAW, H2::CSurfaceFlags::SURF_FLAG_NODRAW);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NOLIGHTMAP, H2::CSurfaceFlags::SURF_FLAG_NOLIGHTMAP);
+				convert(IW4::CSurfaceFlags::SURF_FLAG_NODLIGHT, H2::CSurfaceFlags::SURF_FLAG_NODLIGHT);
+				return h1_flags;
+			}
+
             static XModel* convert_from_iw4(IW4::XModel* asset, const std::function<const char* (uint16_t)>& convertToString)
             {
 				const auto name = reinterpret_cast<std::uint64_t>(asset->name);
@@ -124,7 +204,7 @@ namespace ZoneTool
 					memcpy(collSurfs[i].bounds.midPoint, asset->colSurf[i].bounds.midPoint, sizeof(Bounds::midPoint));
 					collSurfs[i].boneIdx = asset->colSurf[i].boneIdx;
 					collSurfs[i].contents = asset->colSurf[i].contents;
-					collSurfs[i].surfFlags = asset->colSurf[i].surfFlags;
+					collSurfs[i].surfFlags = convert_surf_flags(asset->colSurf[i].surfFlags);
 				}
 				xmodel->collSurfs = reinterpret_cast<std::uint64_t>(collSurfs);
 
@@ -224,6 +304,7 @@ namespace ZoneTool
 				{
 					auto modelSurfs = reinterpret_cast<XModelSurfs*>(lodInfo[i].modelSurfs);
 					dump.dump_asset(modelSurfs);
+					dump.dump_array64<XUnknown1>(asset->lodInfo[i].reactiveMotionParts, asset->lodInfo[i].numReactiveMotionParts);
 				}
 
 				// physics subassets

@@ -160,26 +160,28 @@ namespace ZoneTool
 				float DecodeScale = (float)((float)PackedBytes[3] - -192.0) / 32385.0f;
 
 				return std::vector<float>{
-					(float)((float)(uint8_t)PackedBytes[0] - 127.0)* DecodeScale,
-						(float)((float)(uint8_t)PackedBytes[1] - 127.0)* DecodeScale,
-						(float)((float)(uint8_t)PackedBytes[2] - 127.0)* DecodeScale};
+					(float)((float)PackedBytes[0] - 127.0)* DecodeScale,
+						(float)((float)PackedBytes[1] - 127.0)* DecodeScale,
+						(float)((float)PackedBytes[2] - 127.0)* DecodeScale};
 			}
 
-			static unsigned int PackVector(const std::vector<float>& vec)
+			static unsigned int Vec3PackUnitVec(const std::vector<float>& vec) // h2 func
 			{
-				// https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L563
-				//return Vector3(
-				//	(float)((float)((float)(PackedNormal->PackedInteger & 0x3FF) / 1023.0) * 2.0) - 1.0f,
-				//	(float)((float)((float)((PackedNormal->PackedInteger >> 10) & 0x3FF) / 1023.0) * 2.0) - 1.0f,
-				//	(float)((float)((float)((PackedNormal->PackedInteger >> 20) & 0x3FF) / 1023.0) * 2.0) - 1.0f);
+				float v2; // xmm0_8
+				unsigned int v3; // ebx
+				float v4; // xmm0_8
+				int v5; // ebx
+				float v6; // xmm0_8
 
-				unsigned int x = (((unsigned int)(((vec[0] + 1.0f) / 2.0) * 1023.0)) & 0x3FF);
-				unsigned int y = (((unsigned int)(((vec[1] + 1.0f) / 2.0) * 1023.0)) & 0x3FF) << 10;
-				unsigned int z = (((unsigned int)(((vec[2] + 1.0f) / 2.0) * 1023.0)) & 0x3FF) << 20;
-
-				unsigned int packedVec = x + y + z;
-
-				return packedVec;
+				v2 = ((((fmaxf(-1.0f, fminf(1.0f, vec[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+				v2 = floorf(v2);
+				v3 = ((int)v2 | 0xFFFFFC00) << 10;
+				v4 = ((((fmaxf(-1.0f, fminf(1.0f, vec[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+				v4 = floorf(v4);
+				v5 = ((int)v4 | v3) << 10;
+				v6 = ((((fmaxf(-1.0f, fminf(1.0f, vec[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+				v6 = floorf(v6);
+				return (unsigned int)(v5 | (int)v6);
 			}
 
 			static std::vector<uint16_t> UnpackUV(unsigned int packed)
@@ -236,33 +238,25 @@ namespace ZoneTool
 					auto& vert = packedVerts0[v];
 					memcpy(vert.xyz, asset->verticies[v].xyz, sizeof(GfxPackedVertex::xyz));
 					vert.binormalSign = asset->verticies[v].binormalSign;
-					unsigned char arr[4];
-					for (int j = 0; j < 4; j++)
-					{
-						arr[j] = static_cast<unsigned char>(asset->verticies[v].color.array[j]);
-					}
 
 					//reverse the UV axis
-					auto unpackedUV = UnpackUV(asset->verticies[v].texCoord.packed);
-					unsigned int packedUV = ((unsigned int)unpackedUV[1]) + ((unsigned int)unpackedUV[0] << 16);
-					//auto unpackedUV2 = UnpackUV(packedUV);
-					//ZONETOOL_INFO("unpackedUV: %d %d", unpackedUV[0], unpackedUV[1]);
-					//ZONETOOL_INFO("unpackedUV2: %d %d", unpackedUV2[0], unpackedUV2[1]);
+					auto uv_unpacked = UnpackUV(asset->verticies[v].texCoord.packed);
+					unsigned int uv_packed = ((unsigned int)uv_unpacked[1]) | ((unsigned int)uv_unpacked[0] << 16);
 
-					auto unpackedNormal = UnpackVector(asset->verticies[v].normal.packed);
-					unsigned int packedNormal = PackVector(unpackedNormal);
-					auto unpackedTangent = UnpackVector(asset->verticies[v].tangent.packed);
-					unsigned int packedTangent = PackVector(unpackedTangent);
+					auto normal_unpacked = UnpackVector(asset->verticies[v].normal.packed);
+					unsigned int normal_packed = Vec3PackUnitVec(normal_unpacked);
+					//auto tangent_unpacked = UnpackVector(asset->verticies[v].tangent.packed);
+					//unsigned int tangent_packed = Vec3PackUnitVec(tangent_unpacked);
 
 					vert.color = {
-						{arr[0], arr[1], arr[2], arr[3]},
+						.packed = asset->verticies[v].color.packed,
 					};
 					vert.texCoord = {
-						.packed = packedUV };
+						.packed = uv_packed };
 					vert.normal = {
-						.packed = packedNormal };
+						.packed = normal_packed };
 					vert.tangent = {
-						.packed = packedTangent };
+						.packed = normal_packed };
 
 					memcpy(unknown0[v].xyz, vert.xyz, sizeof(GfxPackedVertex::xyz));
 					unknown0[v].normal = vert.normal;
@@ -301,14 +295,14 @@ namespace ZoneTool
 					if (asset->rigidVertLists[j].collisionTree)
 					{
 						auto collisionTree = new XSurfaceCollisionTree();
-						memcpy(collisionTree->trans, asset->rigidVertLists[j].collisionTree->trans, sizeof(XSurfaceCollisionTree::trans));
-						memcpy(collisionTree->scale, asset->rigidVertLists[j].collisionTree->scale, sizeof(XSurfaceCollisionTree::scale));
+						memcpy(collisionTree->trans, asset->rigidVertLists[j].collisionTree->trans, sizeof(asset->rigidVertLists[j].collisionTree->trans));
+						memcpy(collisionTree->scale, asset->rigidVertLists[j].collisionTree->scale, sizeof(asset->rigidVertLists[j].collisionTree->scale));
 						collisionTree->nodeCount = asset->rigidVertLists[j].collisionTree->nodeCount;
 						auto nodes = new XSurfaceCollisionNode[collisionTree->nodeCount]();
 						for (int n = 0; n < collisionTree->nodeCount; n++)
 						{
-							memcpy(nodes[n].aabb.mins, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.mins, sizeof(XSurfaceCollisionAabb::mins));
-							memcpy(nodes[n].aabb.maxs, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.maxs, sizeof(XSurfaceCollisionAabb::maxs));
+							memcpy(nodes[n].aabb.mins, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.mins, sizeof(asset->rigidVertLists[j].collisionTree->nodes[n].aabb.mins));
+							memcpy(nodes[n].aabb.maxs, asset->rigidVertLists[j].collisionTree->nodes[n].aabb.maxs, sizeof(asset->rigidVertLists[j].collisionTree->nodes[n].aabb.maxs));
 							nodes[n].childBeginIndex = asset->rigidVertLists[j].collisionTree->nodes[n].childBeginIndex;
 							nodes[n].childCount = asset->rigidVertLists[j].collisionTree->nodes[n].childCount;
 						}
