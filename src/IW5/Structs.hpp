@@ -921,6 +921,29 @@ namespace ZoneTool
 			char* name;
 		};
 
+		struct WaterWritable
+		{
+			float floatTime;
+		};
+
+		struct water_t
+		{
+			WaterWritable writable;
+			float* H0X;
+			float* H0Y;
+			float* wTerm;
+			int M;
+			int N;
+			float Lx;
+			float Lz;
+			float gravity;
+			float windvel;
+			float winddir[2];
+			float amplitude;
+			float codeConstant[4];
+			GfxImage* image;
+		};
+
 		struct MaterialImage
 		{
 			unsigned int typeHash; // asset hash of type
@@ -1022,6 +1045,17 @@ namespace ZoneTool
 			unsigned int loadBits[2];
 		};
 
+		enum GfxCameraRegionType : std::uint16_t
+		{
+			CAMERA_REGION_LIT_OPAQUE = 0x0,
+			CAMERA_REGION_LIT_TRANS = 0x1,
+			CAMERA_REGION_EMISSIVE = 0x2,
+			CAMERA_REGION_DEPTH_HACK = 0x3,
+			CAMERA_REGION_LIGHT_MAP_OPAQUE = 0x4,
+			CAMERA_REGION_COUNT = 0x5,
+			CAMERA_REGION_NONE = 0x5,
+		};
+
 		struct Material
 		{
 			const char* name; // 0
@@ -1031,8 +1065,8 @@ namespace ZoneTool
 			unsigned char animationY; // 7 // amount of animation frames in Y
 			int subRendererIndex; // 8 // 0x00
 			unsigned int rendererIndex; // 12 // only for 3D models
-			int unknown;
 			unsigned int surfaceTypeBits; //+20
+			int unknown;
 			char stateBitsEntry[54];
 			unsigned char numMaps;
 			unsigned char constantCount;
@@ -1161,7 +1195,7 @@ namespace ZoneTool
 		struct XSurface
 		{
 			char tileMode; // +0
-			char deformed; // +1			
+			char flags; // +1			
 			unsigned short vertCount; // +2
 			unsigned short triCount; // +4
 			unsigned char streamHandle; // +6
@@ -1283,6 +1317,14 @@ namespace ZoneTool
 			PhysGeomInfo* info;
 			char pad2[60];
 		};
+
+		enum PhysPresetScaling : __int32
+		{
+			PHYSPRESET_SCALING_LINEAR = 0x0,
+			PHYSPRESET_SCALING_QUADRATIC = 0x1,
+			PHYSPRESET_SCALING_COUNT = 0x2,
+		};
+
 #pragma pack(push, 4)
 		struct PhysPreset
 		{
@@ -1296,7 +1338,14 @@ namespace ZoneTool
 			const char* sndAliasPrefix;
 			float piecesSpreadFraction;
 			float piecesUpwardVelocity;
-			int unknowns[7];
+			float minMomentum;
+			float maxMomentum;
+			float minPitch;
+			float maxPitch;
+			PhysPresetScaling volumeType;
+			PhysPresetScaling pitchType;
+			bool tempDefaultToCylinder;
+			bool perSurfaceSndAlias;
 		};
 #pragma pack(pop)
 

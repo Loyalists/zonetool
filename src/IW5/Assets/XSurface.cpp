@@ -83,23 +83,13 @@ namespace ZoneTool
 				out[1] = *reinterpret_cast<float*>(&val);
 			}
 
-			PackedUnitVec Vec3PackUnitVec(float* in) // h2 func
+			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
 			{
-				float v2; // xmm0_8
-				unsigned int v3; // ebx
-				float v4; // xmm0_8
-				int v5; // ebx
-				float v6; // xmm0_8
+				int result;
 
-				v2 = ((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v2 = floorf(v2);
-				v3 = ((int)v2 | 0xFFFFFC00) << 10;
-				v4 = ((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v4 = floorf(v4);
-				v5 = ((int)v4 | v3) << 10;
-				v6 = ((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v6 = floorf(v6);
-				return (PackedUnitVec)(v5 | (int)v6);
+				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | 0xFFFFFC00) << 10;
+				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | result) << 10;
+				return (PackedUnitVec)(result | (int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)));
 			}
 
 			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func
@@ -229,12 +219,10 @@ namespace ZoneTool
 		void GenerateH1XSurface(H1::XSurface* h1_asset, XSurface* asset, ZoneMemory* mem)
 		{
 			h1_asset->flags = 0;
-			h1_asset->flags |= ((asset->deformed & IW5::SURF_FLAG_VERTCOL_GREY) != 0) ? H1::SURF_FLAG_VERTCOL_GREY : 0;
-			h1_asset->flags |= ((asset->deformed & IW5::SURF_FLAG_VERTCOL_NONE) != 0) ? H1::SURF_FLAG_VERTCOL_NONE : 0;
-			//h1_asset->flags |= ((asset->deformed & IW5::SURF_FLAG_QUANTIZED) != 0) ? H1::SURF_FLAG_QUANTIZED : 0;
-			h1_asset->flags |= ((asset->deformed & IW5::SURF_FLAG_SKINNED) != 0) ? H1::SURF_FLAG_SKINNED : 0;
-
-			h1_asset->flags |= ((h1_asset->flags & H1::SURF_FLAG_VERTCOL_GREY) == 0) ? H1::SURF_FLAG_VERTCOL_NONE : 0;
+			h1_asset->flags |= ((asset->flags & IW5::SURF_FLAG_VERTCOL_GREY) != 0) ? H1::SURF_FLAG_VERTCOL_GREY : 0;
+			h1_asset->flags |= ((asset->flags & IW5::SURF_FLAG_VERTCOL_NONE) != 0) ? H1::SURF_FLAG_VERTCOL_NONE : 0;
+			//h1_asset->flags |= ((asset->flags & IW5::SURF_FLAG_QUANTIZED) != 0) ? H1::SURF_FLAG_QUANTIZED : 0;
+			h1_asset->flags |= ((asset->flags & IW5::SURF_FLAG_SKINNED) != 0) ? H1::SURF_FLAG_SKINNED : 0;
 
 			h1_asset->vertCount = asset->vertCount;
 			h1_asset->triCount = asset->triCount;
@@ -276,6 +264,12 @@ namespace ZoneTool
 				//float tangent_unpacked[3]{ 0 };
 				//PackedShit::Vec3UnpackUnitVec(asset->verticies[i].tangent, tangent_unpacked);
 				h1_asset->verts0.packedVerts0[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
+
+				// correct color : bgra->rgba
+				h1_asset->verts0.packedVerts0[i].color.array[0] = asset->verticies[i].color.array[2];
+				h1_asset->verts0.packedVerts0[i].color.array[1] = asset->verticies[i].color.array[1];
+				h1_asset->verts0.packedVerts0[i].color.array[2] = asset->verticies[i].color.array[0];
+				h1_asset->verts0.packedVerts0[i].color.array[3] = asset->verticies[i].color.array[3];
 			}
 
 			// unknown

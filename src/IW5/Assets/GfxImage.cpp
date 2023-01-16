@@ -117,17 +117,6 @@ namespace ZoneTool
 			return offset;
 		}
 
-		unsigned int image_count_mipmaps(unsigned int width, unsigned int height, unsigned int depth)
-		{
-			unsigned int mipRes;
-			unsigned int mipCount;
-
-			mipCount = 1;
-			for (mipRes = 1; mipRes < width || mipRes < height || mipRes < depth; mipRes *= 2)
-				++mipCount;
-			return mipCount;
-		}
-
 		H1::GfxImage* GenerateH1GfxImage(GfxImage* asset, ZoneMemory* mem)
 		{
 			// allocate H1 GfxImage structure
@@ -145,7 +134,7 @@ namespace ZoneTool
 			h1_asset->height = asset->height;
 			h1_asset->depth = asset->depth;
 			h1_asset->numElements = asset->mapType == 5 ? 6 : 1;
-			h1_asset->levelCount = 1;
+			h1_asset->levelCount = asset->mapType == 5 ? 7 : 1;
 			h1_asset->streamed = false;
 			h1_asset->pixelData = reinterpret_cast<unsigned char*>(&asset->texture->data);
 

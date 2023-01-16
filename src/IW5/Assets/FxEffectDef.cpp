@@ -104,23 +104,22 @@ namespace ZoneTool
 		unsigned int convert_elem_flags(unsigned int flags)
 		{
 			unsigned int h1_flags = 0;
-			auto convert = [&](unsigned int a, unsigned int b)
+			auto convert = [&](unsigned int a, unsigned int b, unsigned int mask = 0)
 			{
-				h1_flags |= ((flags & a) == a) ? b : 0;
+				h1_flags |= ((flags & (mask ? mask : a)) == a) ? b : 0;
 			};
+
 			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_RELATIVE_TO_EFFECT, H1::FxElemDefFlags::FX_ELEM_SPAWN_RELATIVE_TO_EFFECT);
 			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_FRUSTUM_CULL, H1::FxElemDefFlags::FX_ELEM_SPAWN_FRUSTUM_CULL);
 			convert(IW5::FxElemDefFlags::FX_ELEM_RUNNER_USES_RAND_ROT, H1::FxElemDefFlags::FX_ELEM_RUNNER_USES_RAND_ROT);
-			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_NONE, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_NONE);
-			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_SPHERE, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_SPHERE);
-			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_CYLINDER, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_CYLINDER);
-			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_MASK, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_MASK);
-			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_WORLD, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_WORLD);
-			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_SPAWN, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_SPAWN);
-			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_EFFECT, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_EFFECT);
-			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_OFFSET, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_OFFSET);
+			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_NONE, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_NONE, IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_SPHERE, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_SPHERE, IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_CYLINDER, H1::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_CYLINDER, IW5::FxElemDefFlags::FX_ELEM_SPAWN_OFFSET_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_WORLD, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_WORLD, IW5::FxElemDefFlags::FX_ELEM_RUN_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_SPAWN, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_SPAWN, IW5::FxElemDefFlags::FX_ELEM_RUN_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_EFFECT, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_EFFECT, IW5::FxElemDefFlags::FX_ELEM_RUN_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_OFFSET, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_OFFSET, IW5::FxElemDefFlags::FX_ELEM_RUN_MASK);
 			//convert(IW5::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_CAMERA, H1::FxElemDefFlags::FX_ELEM_RUN_RELATIVE_TO_CAMERA);
-			convert(IW5::FxElemDefFlags::FX_ELEM_RUN_MASK, H1::FxElemDefFlags::FX_ELEM_RUN_MASK);
 			convert(IW5::FxElemDefFlags::FX_ELEM_DIE_ON_TOUCH, H1::FxElemDefFlags::FX_ELEM_DIE_ON_TOUCH);
 			convert(IW5::FxElemDefFlags::FX_ELEM_DRAW_PAST_FOG, H1::FxElemDefFlags::FX_ELEM_DRAW_PAST_FOG);
 			convert(IW5::FxElemDefFlags::FX_ELEM_DRAW_WITH_VIEWMODEL, H1::FxElemDefFlags::FX_ELEM_DRAW_WITH_VIEWMODEL);
@@ -130,24 +129,22 @@ namespace ZoneTool
 			//convert(IW5::FxElemDefFlags::FX_ELEM_EMIT_BOLT, H1::FxElemDefFlags::FX_ELEM_EMIT_BOLT);
 			convert(IW5::FxElemDefFlags::FX_ELEM_EMIT_ORIENT_BY_ELEM, H1::FxElemDefFlags::FX_ELEM_EMIT_ORIENT_BY_ELEM);
 			convert(IW5::FxElemDefFlags::FX_ELEM_USE_OCCLUSION_QUERY, H1::FxElemDefFlags::FX_ELEM_USE_OCCLUSION_QUERY);
-			//convert(IW5::FxElemDefFlags::FX_ELEM_NODRAW_IN_THERMAL_VIEW, H1::FxElemDefFlags::FX_ELEM_NODRAW_IN_THERMAL_VIEW);
-			//convert(IW5::FxElemDefFlags::FX_ELEM_THERMAL_MASK, H1::FxElemDefFlags::FX_ELEM_THERMAL_MASK);
+			//convert(IW5::FxElemDefFlags::FX_ELEM_NODRAW_IN_THERMAL_VIEW, H1::FxElemDefFlags::FX_ELEM_NODRAW_IN_THERMAL_VIEW, IW5::FxElemDefFlags::FX_ELEM_THERMAL_MASK);
 			//convert(IW5::FxElemDefFlags::FX_ELEM_SPAWN_IMPACT_FX_WITH_SURFACE_NAME, H1::FxElemDefFlags::FX_ELEM_SPAWN_IMPACT_FX_WITH_SURFACE_NAME);
 			//convert(IW5::FxElemDefFlags::FX_ELEM_RECEIVE_DYNAMIC_LIGHT, H1::FxElemDefFlags::FX_ELEM_RECEIVE_DYNAMIC_LIGHT);
 			//convert(IW5::FxElemDefFlags::FX_ELEM_VOLUMETRIC_TRAIL, H1::FxElemDefFlags::FX_ELEM_VOLUMETRIC_TRAIL);
 			convert(IW5::FxElemDefFlags::FX_ELEM_USE_COLLISION, H1::FxElemDefFlags::FX_ELEM_USE_COLLISION);
 			//convert(IW5::FxElemDefFlags::FX_ELEM_USE_VECTORFIELDS, H1::FxElemDefFlags::FX_ELEM_USE_VECTORFIELDS);
-		//	convert(IW5::FxElemDefFlags::FX_ELEM_NO_SURFACE_HDR_SCALAR, H1::FxElemDefFlags::FX_ELEM_NO_SURFACE_HDR_SCALAR);
+			//convert(IW5::FxElemDefFlags::FX_ELEM_NO_SURFACE_HDR_SCALAR, H1::FxElemDefFlags::FX_ELEM_NO_SURFACE_HDR_SCALAR);
 			convert(IW5::FxElemDefFlags::FX_ELEM_HAS_VELOCITY_GRAPH_LOCAL, H1::FxElemDefFlags::FX_ELEM_HAS_VELOCITY_GRAPH_LOCAL);
 			convert(IW5::FxElemDefFlags::FX_ELEM_HAS_VELOCITY_GRAPH_WORLD, H1::FxElemDefFlags::FX_ELEM_HAS_VELOCITY_GRAPH_WORLD);
 			convert(IW5::FxElemDefFlags::FX_ELEM_HAS_GRAVITY, H1::FxElemDefFlags::FX_ELEM_HAS_GRAVITY);
 			convert(IW5::FxElemDefFlags::FX_ELEM_USE_MODEL_PHYSICS, H1::FxElemDefFlags::FX_ELEM_USE_MODEL_PHYSICS);
 			convert(IW5::FxElemDefFlags::FX_ELEM_NONUNIFORM_SCALE, H1::FxElemDefFlags::FX_ELEM_NONUNIFORM_SCALE);
-			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_CUBE, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_CUBE);
-			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE);
-			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM);
-			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL);
-			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_CUBE, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_CUBE, IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE, IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM, IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK);
+			convert(IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL, H1::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL, IW5::FxElemDefFlags::FX_ELEM_CLOUD_SHAPE_MASK);
 			convert(IW5::FxElemDefFlags::FX_ELEM_FOUNTAIN_DISABLE_COLLISION, H1::FxElemDefFlags::FX_ELEM_FOUNTAIN_DISABLE_COLLISION);
 
 			return h1_flags;
@@ -189,10 +186,10 @@ namespace ZoneTool
 					// check
 
 					// base
-					h1_elem->visSamples[i].base.color[0] = static_cast<float>(elem->visSamples[i].base.color[0]) / 255.0f;
-					h1_elem->visSamples[i].base.color[1] = static_cast<float>(elem->visSamples[i].base.color[1]) / 255.0f;
-					h1_elem->visSamples[i].base.color[2] = static_cast<float>(elem->visSamples[i].base.color[2]) / 255.0f;
-					h1_elem->visSamples[i].base.color[3] = static_cast<float>(elem->visSamples[i].base.color[3]) / 255.0f;
+					h1_elem->visSamples[i].base.color[0] = static_cast<int>(elem->visSamples[i].base.color[2]) / 255.0f;
+					h1_elem->visSamples[i].base.color[1] = static_cast<int>(elem->visSamples[i].base.color[1]) / 255.0f;
+					h1_elem->visSamples[i].base.color[2] = static_cast<int>(elem->visSamples[i].base.color[0]) / 255.0f;
+					h1_elem->visSamples[i].base.color[3] = static_cast<int>(elem->visSamples[i].base.color[3]) / 255.0f;
 					h1_elem->visSamples[i].base.pad1[0] = 1.0f;
 					h1_elem->visSamples[i].base.pad1[1] = 1.0f;
 					h1_elem->visSamples[i].base.pad1[2] = 1.0f;
@@ -205,10 +202,10 @@ namespace ZoneTool
 					h1_elem->visSamples[i].base.pad2[1] = 0.0f;
 
 					// amplitude
-					h1_elem->visSamples[i].amplitude.color[0] = static_cast<float>(elem->visSamples[i].amplitude.color[0]) / 255.0f;
-					h1_elem->visSamples[i].amplitude.color[1] = static_cast<float>(elem->visSamples[i].amplitude.color[1]) / 255.0f;
-					h1_elem->visSamples[i].amplitude.color[2] = static_cast<float>(elem->visSamples[i].amplitude.color[2]) / 255.0f;
-					h1_elem->visSamples[i].amplitude.color[3] = static_cast<float>(elem->visSamples[i].amplitude.color[3]) / 255.0f;
+					h1_elem->visSamples[i].amplitude.color[0] = static_cast<int>(elem->visSamples[i].amplitude.color[2]) / 255.0f;
+					h1_elem->visSamples[i].amplitude.color[1] = static_cast<int>(elem->visSamples[i].amplitude.color[1]) / 255.0f;
+					h1_elem->visSamples[i].amplitude.color[2] = static_cast<int>(elem->visSamples[i].amplitude.color[0]) / 255.0f;
+					h1_elem->visSamples[i].amplitude.color[3] = static_cast<int>(elem->visSamples[i].amplitude.color[3]) / 255.0f;
 					h1_elem->visSamples[i].amplitude.pad1[0] = 1.0f;
 					h1_elem->visSamples[i].amplitude.pad1[1] = 1.0f;
 					h1_elem->visSamples[i].amplitude.pad1[2] = 1.0f;
@@ -289,13 +286,16 @@ namespace ZoneTool
 			case FX_ELEM_TYPE_SPOT_LIGHT:
 				// check
 				h1_elem->extended.spotLightDef = mem->Alloc<H1::FxSpotLightDef>();
-				h1_elem->extended.spotLightDef->fovInnerFraction = elem->extended.spotLightDef->fovInnerFraction;
-				h1_elem->extended.spotLightDef->startRadius = elem->extended.spotLightDef->startRadius;
-				h1_elem->extended.spotLightDef->endRadius = elem->extended.spotLightDef->endRadius;
-				h1_elem->extended.spotLightDef->brightness = elem->extended.spotLightDef->brightness;
-				h1_elem->extended.spotLightDef->maxLength = elem->extended.spotLightDef->maxLength;
-				h1_elem->extended.spotLightDef->exponent = elem->extended.spotLightDef->exponent;
-				// pad
+				if (elem->extended.spotLightDef)
+				{
+					h1_elem->extended.spotLightDef->fovInnerFraction = elem->extended.spotLightDef->fovInnerFraction;
+					h1_elem->extended.spotLightDef->startRadius = elem->extended.spotLightDef->startRadius;
+					h1_elem->extended.spotLightDef->endRadius = elem->extended.spotLightDef->endRadius;
+					h1_elem->extended.spotLightDef->brightness = elem->extended.spotLightDef->brightness;
+					h1_elem->extended.spotLightDef->maxLength = elem->extended.spotLightDef->maxLength;
+					h1_elem->extended.spotLightDef->exponent = elem->extended.spotLightDef->exponent;
+					// pad
+				}
 				break;
 			case FX_ELEM_TYPE_OMNI_LIGHT:
 				h1_elem->extended.omniLightDef = mem->Alloc<H1::FxOmniLightDef>();

@@ -336,8 +336,8 @@ namespace ZoneTool
 			h1_asset->clientTrigger.triggerStringLength = asset->clientTrigger.triggerStringLength;
 			h1_asset->clientTrigger.triggerString = asset->clientTrigger.triggerString;
 			h1_asset->clientTrigger.visionSetTriggers = asset->clientTrigger.visionSetTriggers;
-			h1_asset->clientTrigger.blendLookup = nullptr;
-			h1_asset->clientTrigger.unk1 = nullptr;
+			h1_asset->clientTrigger.blendLookup = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
+			h1_asset->clientTrigger.unk1 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
 			h1_asset->clientTrigger.triggerType = mem->Alloc<short>(asset->clientTrigger.numClientTriggerNodes);
 			for (auto i = 0; i < asset->clientTrigger.numClientTriggerNodes; i++)
 			{
@@ -345,12 +345,12 @@ namespace ZoneTool
 			}
 			h1_asset->clientTrigger.origins = reinterpret_cast<float(*__ptr64)[3]>(asset->clientTrigger.origins);
 			h1_asset->clientTrigger.scriptDelay = asset->clientTrigger.scriptDelay;
-			h1_asset->clientTrigger.audioTriggers = nullptr;
-			h1_asset->clientTrigger.unk2 = nullptr;
-			h1_asset->clientTrigger.unk3 = nullptr;
-			h1_asset->clientTrigger.unk4 = nullptr;
-			h1_asset->clientTrigger.unk5 = nullptr;
-			//h1_asset->clientTrigger.__pad0;
+			h1_asset->clientTrigger.audioTriggers = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount);
+			h1_asset->clientTrigger.unk2 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
+			h1_asset->clientTrigger.unk3 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
+			h1_asset->clientTrigger.unk4 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
+			h1_asset->clientTrigger.unk5 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
+			h1_asset->clientTrigger.unk6 = mem->Alloc<short>(asset->clientTrigger.trigger.modelCount); // todo?
 
 			h1_asset->clientTriggerBlend.numClientTriggerBlendNodes = 0;
 			h1_asset->clientTriggerBlend.blendNodes = nullptr;

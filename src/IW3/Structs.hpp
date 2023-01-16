@@ -366,6 +366,58 @@ namespace ZoneTool
 			MaterialTechnique* techniques[34];
 		};
 
+		struct MaterialGameFlagsFields
+		{
+			unsigned char unk1 : 1; // 0x1
+			unsigned char addShadowToPrimaryLight : 1; // 0x2
+			unsigned char isFoliageRequiresGroundLighting : 1; // 0x4
+			unsigned char unk4 : 1; // 0x8
+			unsigned char unk5 : 1; // 0x10
+			unsigned char unk6 : 1; // 0x20
+			unsigned char MTL_GAMEFLAG_CASTS_SHADOW : 1; // 0x40
+			unsigned char unkNeededForSModelDisplay : 1; // 0x80
+		};
+
+		union MaterialGameFlags
+		{
+			MaterialGameFlagsFields fields;
+			unsigned char packed;
+		};
+
+		enum SurfaceTypeBits : std::uint32_t
+		{
+			SURFTYPE_BITS_DEFAULT = 0x0,
+			SURFTYPE_BITS_BARK = 0x1,
+			SURFTYPE_BITS_BRICK = 0x2,
+			SURFTYPE_BITS_CARPET = 0x4,
+			SURFTYPE_BITS_CLOTH = 0x8,
+			SURFTYPE_BITS_CONCRETE = 0x10,
+			SURFTYPE_BITS_DIRT = 0x20,
+			SURFTYPE_BITS_FLESH = 0x40,
+			SURFTYPE_BITS_FOLIAGE = 0x80,
+			SURFTYPE_BITS_GLASS = 0x100,
+			SURFTYPE_BITS_GRASS = 0x200,
+			SURFTYPE_BITS_GRAVEL = 0x400,
+			SURFTYPE_BITS_ICE = 0x800,
+			SURFTYPE_BITS_METAL = 0x1000,
+			SURFTYPE_BITS_MUD = 0x2000,
+			SURFTYPE_BITS_PAPER = 0x4000,
+			SURFTYPE_BITS_PLASTER = 0x8000,
+			SURFTYPE_BITS_ROCK = 0x10000,
+			SURFTYPE_BITS_SAND = 0x20000,
+			SURFTYPE_BITS_SNOW = 0x40000,
+			SURFTYPE_BITS_WATER = 0x80000,
+			SURFTYPE_BITS_WOOD = 0x100000,
+			SURFTYPE_BITS_ASPHALT = 0x200000,
+			SURFTYPE_BITS_CERAMIC = 0x400000,
+			SURFTYPE_BITS_PLASTIC = 0x800000,
+			SURFTYPE_BITS_RUBBER = 0x1000000,
+			SURFTYPE_BITS_CUSHION = 0x2000000,
+			SURFTYPE_BITS_FRUIT = 0x4000000,
+			SURFTYPE_BITS_PAINTEDMETAL = 0x8000000,
+			SURFTYPE_BITS_SLUSH = 0x10000000,
+		};
+
 #pragma pack(push, 4)
 		struct MaterialInfo
 		{

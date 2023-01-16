@@ -128,10 +128,10 @@ namespace ZoneTool
 
 			h1_alias->mixerGroup = nullptr;
 
-			h1_alias->poly = 174;
-			h1_alias->polyGlobal = 8;
+			h1_alias->poly = 1;
+			h1_alias->polyGlobal = 174;
 			h1_alias->polyEntityType = 0;
-			h1_alias->polyGlobalType = 2;
+			h1_alias->polyGlobalType = 0;
 
 			h1_alias->dspBusIndex = 0; // default;
 			h1_alias->priority = 1;
@@ -143,7 +143,7 @@ namespace ZoneTool
 			h1_alias->volModIndex = 0; // default
 
 			h1_alias->pitchMin = alias->pitchMin;
-			h1_alias->pitchMin = alias->pitchMax;
+			h1_alias->pitchMax = alias->pitchMax;
 
 			h1_alias->distMin = alias->distMin;
 			h1_alias->distMax = alias->distMax;
@@ -245,7 +245,7 @@ namespace ZoneTool
 			h1_flags.packed.fullDryLevel = iw3_flags.fullDryLevel;
 			h1_flags.packed.noWetLevel = iw3_flags.noWetLevel;
 			h1_flags.packed.is3d = iw3_flags.unknown1;
-			h1_flags.packed.unk1 = 0;
+			h1_flags.packed.unk1 = 6; // ? 4 = world sound, 6 = ambient
 			h1_flags.packed.type = h1_alias->soundFile->type; //iw3_flags.type;
 			h1_flags.packed.unk2 = 0;
 

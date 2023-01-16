@@ -34,6 +34,7 @@ using ordered_json = nlohmann::ordered_json;
 #include "Assets/GlassWorld.hpp"
 #include "Assets/MapEnts.hpp"
 #include "Assets/Material.hpp"
+#include "Assets/PhysPreset.hpp"
 #include "Assets/RawFile.hpp"
 #include "Assets/XAnimParts.hpp"
 #include "Assets/XModel.hpp"

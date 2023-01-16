@@ -19,6 +19,8 @@
 #include <vector>
 #include <string>
 
+#include <unordered_set>
+
 using namespace std::string_literals;
 
 #include "IW3.hpp"

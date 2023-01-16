@@ -231,9 +231,9 @@ namespace ZoneTool
 			for (unsigned int i = 0; i < asset->dpvs.smodelCount; i++)
 			{
 				auto flags = asset->dpvs.smodelDrawInsts[i].flags;
-				if ((flags & 0x180) != 0 && (flags & 0x80) != 0 && asset->dpvs.smodelLighting[i].vertexInfo.lightingValues)
+				if ((flags & 0x180) != 0 && (flags & 0x80) != 0 && asset->dpvs.smodelLighting[i].vertexLightingInfo.lightingValues)
 				{
-					write.dump_array(asset->dpvs.smodelLighting[i].vertexInfo.lightingValues, asset->dpvs.smodelLighting[i].vertexInfo.numLightingValues);
+					write.dump_array(asset->dpvs.smodelLighting[i].vertexLightingInfo.lightingValues, asset->dpvs.smodelLighting[i].vertexLightingInfo.numLightingValues);
 				}
 			}
 

@@ -138,7 +138,7 @@ namespace ZoneTool
 			info->sCollisionTree.numStaticModels = asset->numStaticModels;
 
 			info->sCollisionTree.smodelNodeCount = 1;
-			info->sCollisionTree.smodelNodes = mem->Alloc<H1::SModelAabbNode>();
+			info->sCollisionTree.smodelNodes = mem->Alloc<H1::SModelAabbNode>(info->sCollisionTree.smodelNodeCount);
 			if (asset->numStaticModels == 0)
 			{
 				info->sCollisionTree.smodelNodes[0].bounds.halfSize[0] = -131072.000f;
@@ -151,12 +151,12 @@ namespace ZoneTool
 				float mins[3];
 
 				maxs[0] = asset->staticModelList[0].absmax[0];
-				maxs[1] = asset->staticModelList[1].absmax[1];
-				maxs[2] = asset->staticModelList[2].absmax[2];
+				maxs[1] = asset->staticModelList[0].absmax[1];
+				maxs[2] = asset->staticModelList[0].absmax[2];
 
 				mins[0] = asset->staticModelList[0].absmin[0];
-				mins[1] = asset->staticModelList[1].absmin[1];
-				mins[2] = asset->staticModelList[2].absmin[2];
+				mins[1] = asset->staticModelList[0].absmin[1];
+				mins[2] = asset->staticModelList[0].absmin[2];
 
 				for (unsigned int i = 1; i < asset->numStaticModels; i++)
 				{

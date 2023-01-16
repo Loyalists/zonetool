@@ -30,7 +30,13 @@ namespace ZoneTool
 			{
 				h1_asset->glassSys.defs[i].halfThickness = asset->glassSys.defs[i].halfThickness;
 				memcpy(&h1_asset->glassSys.defs[i].texVecs, &asset->glassSys.defs[i].texVecs, sizeof(float[2][2]));
-				h1_asset->glassSys.defs[i].color.packed = asset->glassSys.defs[i].color.packed;
+				
+				// correct color : bgra->rgba
+				h1_asset->glassSys.defs[i].color.array[0] = asset->glassSys.defs[i].color.array[2];
+				h1_asset->glassSys.defs[i].color.array[1] = asset->glassSys.defs[i].color.array[1];
+				h1_asset->glassSys.defs[i].color.array[2] = asset->glassSys.defs[i].color.array[0];
+				h1_asset->glassSys.defs[i].color.array[3] = asset->glassSys.defs[i].color.array[3];
+
 				h1_asset->glassSys.defs[i].material = reinterpret_cast<H1::Material*>(asset->glassSys.defs[i].material);
 				h1_asset->glassSys.defs[i].materialShattered = reinterpret_cast<H1::Material*>(asset->glassSys.defs[i].materialShattered);
 				h1_asset->glassSys.defs[i].physPreset = reinterpret_cast<H1::PhysPreset*>(asset->glassSys.defs[i].physPreset);
@@ -55,9 +61,9 @@ namespace ZoneTool
 				h1_asset->glassSys.defs[i].destroyedQuietSound = mem->Alloc<H1::snd_alias_list_t>();
 				h1_asset->glassSys.defs[i].destroyedQuietSound->name = mem->StrDup("glass_pane_breakout");
 
-				// check
-				// pad
-				h1_asset->glassSys.defs[i].numCrackRings = 0;
+				h1_asset->glassSys.defs[i].unk[0] = 0.0652364343f;
+				h1_asset->glassSys.defs[i].unk[1] = 0.815455437f;
+				h1_asset->glassSys.defs[i].numCrackRings = -1;
 				h1_asset->glassSys.defs[i].isOpaque = 0;
 			}
 

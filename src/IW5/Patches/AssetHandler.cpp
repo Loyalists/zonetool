@@ -141,7 +141,7 @@ namespace ZoneTool
 
 			if (!memory)
 			{
-				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 128);		// 128mb
+				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 512);		// 512mb
 			}
 
 			fastfile = static_cast<std::string>(reinterpret_cast<const char*>(*reinterpret_cast<DWORD*>(0x1294A00)
@@ -222,6 +222,7 @@ namespace ZoneTool
 						DUMPCASE(glass_map, IGlassWorld, GlassWorld);
 						DUMPCASE(map_ents, IMapEnts, MapEnts);
 						DUMPCASE(material, IMaterial, Material);
+						DUMPCASE(physpreset, IPhysPreset, PhysPreset);
 						DUMPCASE(rawfile, IRawFile, RawFile);
 						DUMPCASE(xmodel, IXModel, XModel);
 						DUMPCASE(xmodelsurfs, IXSurface, ModelSurface);
@@ -630,6 +631,9 @@ namespace ZoneTool
 
 			// Prevent sound data from getting lost
 			Memory(0x00438551).jump(MssSound_ReadXFile_stub);
+
+			// Remove check for me_pictureframes (messes up dumping)
+			Memory(0x004CC493).set<std::uint8_t>(0xEB);
 
 #ifdef USE_VMPROTECT
 			VMProtectEnd();

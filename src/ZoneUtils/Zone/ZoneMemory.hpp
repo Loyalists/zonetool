@@ -103,12 +103,13 @@ namespace ZoneTool
 				return nullptr;
 			}
 
-			if (mem_pos_ + (size * count) > memory_size_)
+			std::size_t new_pos = mem_pos_ + (size * count);
+			if (new_pos > memory_size_)
 			{
 				char buffer[256];
 				_snprintf_s(buffer, sizeof(buffer),
-					"ZoneTool just went out of memory, and has to be closed (%llu/%llu).",
-					mem_pos_ + (size * count), memory_size_);
+					"ZoneTool just went out of memory, and has to be closed (%u/%u).",
+					new_pos, memory_size_);
 
 				MessageBoxA(nullptr, buffer, "ZoneTool: Out of Memory", NULL);
 				std::exit(0);

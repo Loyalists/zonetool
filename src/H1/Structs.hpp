@@ -125,12 +125,36 @@ namespace ZoneTool
 			float array[4];
 		};
 
+		enum PhysPresetScaling : std::int32_t
+		{
+			PHYSPRESET_SCALING_LINEAR = 0x0,
+			PHYSPRESET_SCALING_QUADRATIC = 0x1,
+			PHYSPRESET_SCALING_COUNT = 0x2,
+		};
+
 		struct PhysPreset
 		{
 			const char* __ptr64 name;
-			char __pad0[32];
+			int type;
+			float mass;
+			float bounce;
+			float friction;
+			float bulletForceScale;
+			float explosiveForceScale;
+			char __pad0[8]; // something added before name and sndAlias
 			const char* __ptr64 sndAliasPrefix;
-			char __pad1[48];
+			float piecesSpreadFraction;
+			float piecesUpwardVelocity;
+			float minMomentum;
+			float maxMomentum;
+			float minVolume;
+			float maxVolume;
+			float minPitch;
+			float maxPitch;
+			PhysPresetScaling volumeType;
+			PhysPresetScaling pitchType;
+			bool tempDefaultToCylinder;
+			bool perSurfaceSndAlias;
 		}; assert_sizeof(PhysPreset, 0x60);
 		assert_offsetof(PhysPreset, sndAliasPrefix, 40);
 
@@ -269,19 +293,21 @@ namespace ZoneTool
 
 		struct GfxDrawSurfFields
 		{
-			unsigned __int64 objectId : 16;
+			unsigned __int64 objectId : 16; // p0 >> 0
+			unsigned __int64 pad0 : 20;
 			unsigned __int64 reflectionProbeIndex : 8;
 			unsigned __int64 hasGfxEntIndex : 1;
-			unsigned __int64 customIndex : 5;
-			unsigned __int64 materialSortedIndex : 13;
-			unsigned __int64 tessellation : 3;
-			unsigned __int64 prepass : 2;
+			unsigned __int64 customIndex : 5; // p0 >> 45
+			unsigned __int64 materialSortedIndex : 14; // p0 >> 50
+			unsigned __int64 tessellation : 2; // p1 >> 0
+			unsigned __int64 prepass : 2; // p1 >> 2
+			unsigned __int64 pad1 : 4;
 			unsigned __int64 useHeroLighting : 1;
 			unsigned __int64 sceneLightEnvIndex : 16;
 			unsigned __int64 viewModelRender : 1;
 			unsigned __int64 surfType : 4;
-			unsigned __int64 primarySortKey : 6;
-			unsigned __int64 unused : 30;
+			unsigned __int64 primarySortKey : 6; // p1 >> 30
+			unsigned __int64 unused : 28;
 		};
 
 		union GfxDrawSurf
@@ -557,9 +583,9 @@ namespace ZoneTool
 
 		enum SurfaceTypeBits : std::uint64_t
 		{
-			SURFTYPE_BITS_NONE = 0x0,
-			SURFTYPE_BITS_DEFAULT = 0x1,
-			SURFTYPE_BITS_BARK = 0x2,
+			SURFTYPE_BITS_DEFAULT = 0x0,
+			SURFTYPE_BITS_BARK = 0x1,
+			SURFTYPE_BITS_BRICK = 0x2,
 			SURFTYPE_BITS_CARPET = 0x4,
 			SURFTYPE_BITS_CLOTH = 0x8,
 			SURFTYPE_BITS_CONCRETE = 0x10,
@@ -1280,6 +1306,14 @@ namespace ZoneTool
 			const char* __ptr64 name;
 		}; assert_sizeof(LocalizeEntry, 0x10);
 
+		enum ContentMask : std::int32_t
+		{
+			CONTENTS_ALL = -1,
+			CONTENTS_NONE = 0x0,
+			CONTENTS_SOLID = 0x1,
+			CONTENTS_PLAYERCLIP = 0x10000,
+		};
+
 		struct TriggerModel
 		{
 			int contents;
@@ -1349,7 +1383,7 @@ namespace ZoneTool
 			short* __ptr64 unk3;
 			short* __ptr64 unk4;
 			short* __ptr64 unk5;
-			char __pad0[8];
+			short* __ptr64 unk6;
 		}; assert_sizeof(ClientTriggers, 0xB0);
 
 		struct ClientTriggerBlendNode
@@ -5522,7 +5556,7 @@ namespace ZoneTool
 			snd_alias_list_t* __ptr64 damagedSound;
 			snd_alias_list_t* __ptr64 destroyedSound;
 			snd_alias_list_t* __ptr64 destroyedQuietSound;
-			char __pad[8];
+			float unk[2];
 			int numCrackRings;
 			bool isOpaque;
 		}; assert_sizeof(FxGlassDef, 120);
@@ -5922,7 +5956,8 @@ namespace ZoneTool
 			GfxLightGridEntry* __ptr64 entries;
 			unsigned int colorCount;
 			GfxLightGridColors* __ptr64 colors;
-			char __pad0[24];
+			char __pad0[20];
+			unsigned int missingGridColorIndex;
 			int tableVersion;
 			int paletteVersion;
 			char rangeExponent8BitsEncoding;
@@ -6132,7 +6167,7 @@ namespace ZoneTool
 			unsigned short staticModelId;
 			unsigned short primaryLightEnvIndex;
 			short unk0;
-			char unk1;
+			char unk1; // lod related
 			unsigned char reflectionProbeIndex;
 			unsigned char firstMtlSkinIndex;
 			unsigned char sunShadowFlags;
@@ -6154,21 +6189,37 @@ namespace ZoneTool
 
 		struct GfxStaticModelVertexLightingInfo
 		{
-			GfxStaticModelVertexLighting* __ptr64 lightingValues;
-			ID3D11Buffer* __ptr64 lightingValuesVb;
+			GfxStaticModelVertexLighting* lightingValues;
+			ID3D11Buffer* lightingValuesVb;
 			int numLightingValues;
 		};
 
 		struct GfxStaticModelLightmapInfo
 		{
-			unsigned short groundLighting[4];
-			float unk[4];
+			float offset[2];
+			float scale[2];
+			unsigned int lightmapIndex;
+		};
+
+		struct GfxStaticModelGroundLightingInfo
+		{
+			unsigned short groundLighting[4]; // float16
+		};
+
+		struct GfxStaticModelLightGridLightingInfo
+		{
+			unsigned short colorFloat16[4];
+			int a;
+			float b;
+			char __pad1[8];
 		};
 
 		union GfxStaticModelLighting
 		{
-			GfxStaticModelVertexLightingInfo vertexInfo;
-			GfxStaticModelLightmapInfo lightmapInfo;
+			GfxStaticModelVertexLightingInfo vertexLightingInfo;
+			GfxStaticModelLightmapInfo modelLightmapInfo;
+			GfxStaticModelGroundLightingInfo modelGroundLightingInfo;
+			GfxStaticModelLightGridLightingInfo modelLightGridLightingInfo;
 		}; assert_sizeof(GfxStaticModelLighting, 24);
 
 		struct GfxSubdivVertexLightingInfo

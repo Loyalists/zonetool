@@ -34,6 +34,7 @@ namespace ZoneTool
 				h1_asset->g_glassData->glassNames[i].pieceCount = asset->g_glassData->glassNames[i].pieceCount;
 				h1_asset->g_glassData->glassNames[i].pieceIndices = reinterpret_cast<unsigned __int16* __ptr64>(asset->g_glassData->glassNames[i].pieceIndices);
 			}
+			memcpy(&h1_asset->g_glassData->pad, asset->g_glassData->pad, sizeof(asset->g_glassData->pad));
 
 			return h1_asset;
 		}

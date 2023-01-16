@@ -10,31 +10,31 @@ namespace ZoneTool
 		{
 			using namespace IW3;
 
-#define _BYTE  uint8_t
-#define _WORD  uint16_t
+#define _BYTE uint8_t
+#define _WORD uint16_t
 #define _DWORD uint32_t
 #define _QWORD uint64_t
 
-#define LOBYTE(x)   (*((_BYTE*)&(x)))   // low byte
-#define LOWORD(x)   (*((_WORD*)&(x)))   // low word
-#define LODWORD(x)  (*((_DWORD*)&(x)))  // low dword
-#define HIBYTE(x)   (*((_BYTE*)&(x)+1))
-#define HIWORD(x)   (*((_WORD*)&(x)+1))
-#define HIDWORD(x)  (*((_DWORD*)&(x)+1))
-#define BYTEn(x, n)   (*((_BYTE*)&(x)+n))
-#define WORDn(x, n)   (*((_WORD*)&(x)+n))
-#define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
-#define BYTE2(x)   BYTEn(x,  2)
+#define LOBYTE(x) (*((_BYTE *)&(x)))   // low byte
+#define LOWORD(x) (*((_WORD *)&(x)))   // low word
+#define LODWORD(x) (*((_DWORD *)&(x))) // low dword
+#define HIBYTE(x) (*((_BYTE *)&(x) + 1))
+#define HIWORD(x) (*((_WORD *)&(x) + 1))
+#define HIDWORD(x) (*((_DWORD *)&(x) + 1))
+#define BYTEn(x, n) (*((_BYTE *)&(x) + n))
+#define WORDn(x, n) (*((_WORD *)&(x) + n))
+#define BYTE1(x) BYTEn(x, 1) // byte 1 (counting from 0)
+#define BYTE2(x) BYTEn(x, 2)
 
-			PackedTexCoords Vec2PackTexCoords(float* in) // iw5 func
+			PackedTexCoords Vec2PackTexCoords(float *in) // iw5 func
 			{
-				int v2; // eax
-				int v3; // esi
-				int v4; // eax
-				int v5; // ecx
+				int v2;					// eax
+				int v3;					// esi
+				int v4;					// eax
+				int v5;					// ecx
 				PackedTexCoords result; // eax
-				int v7; // [esp+8h] [ebp+8h]
-				int v8; // [esp+8h] [ebp+8h]
+				int v7;					// [esp+8h] [ebp+8h]
+				int v8;					// [esp+8h] [ebp+8h]
 
 				v7 = LODWORD(in[0]);
 				v2 = (int)((2 * v7) ^ 0x80003FFF) >> 14;
@@ -64,7 +64,7 @@ namespace ZoneTool
 				return result;
 			}
 
-			void Vec2UnpackTexCoords(const PackedTexCoords in, float* out) // iw5 func
+			void Vec2UnpackTexCoords(const PackedTexCoords in, float *out) // iw5 func
 			{
 				unsigned int val;
 
@@ -73,24 +73,23 @@ namespace ZoneTool
 				else
 					val = 0;
 
-				out[0] = *reinterpret_cast<float*>(&val);
+				out[0] = *reinterpret_cast<float *>(&val);
 
 				if (HIWORD(in.packed))
-					val = ((HIWORD(in.packed) & 0x8000) << 16) | (((((HIWORD(in.packed) & 0x3FFF) << 14)
-						- (~(HIWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
+					val = ((HIWORD(in.packed) & 0x8000) << 16) | (((((HIWORD(in.packed) & 0x3FFF) << 14) - (~(HIWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
 				else
 					val = 0;
 
-				out[1] = *reinterpret_cast<float*>(&val);
+				out[1] = *reinterpret_cast<float *>(&val);
 			}
 
-			PackedUnitVec Vec3PackUnitVec(float* in) // h2 func
+			PackedUnitVec Vec3PackUnitVec(float *in) // h2 func
 			{
-				float v2; // xmm0_8
+				float v2;		 // xmm0_8
 				unsigned int v3; // ebx
-				float v4; // xmm0_8
-				int v5; // ebx
-				float v6; // xmm0_8
+				float v4;		 // xmm0_8
+				int v5;			 // ebx
+				float v6;		 // xmm0_8
 
 				v2 = ((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
 				v2 = floorf(v2);
@@ -103,7 +102,7 @@ namespace ZoneTool
 				return (PackedUnitVec)(v5 | (int)v6);
 			}
 
-			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func
+			void Vec3UnpackUnitVec(const PackedUnitVec in, float *out) // t6 func
 			{
 				float decodeScale;
 
@@ -117,7 +116,7 @@ namespace ZoneTool
 
 	namespace IW3
 	{
-		void GenerateH1BlendVertsShit(H1::XSurface* surf)
+		void GenerateH1BlendVertsShit(H1::XSurface *surf)
 		{
 			unsigned short a = 0;
 			unsigned short b = 0;
@@ -227,11 +226,11 @@ namespace ZoneTool
 			index++;
 		}
 
-		void GenerateH1XSurface(H1::XSurface* h1_asset, XSurface* asset, ZoneMemory* mem)
+		void GenerateH1XSurface(H1::XSurface *h1_asset, XSurface *asset, ZoneMemory *mem)
 		{
-			h1_asset->flags = 0;
+			h1_asset->flags = asset->tileMode;
 			h1_asset->flags |= asset->deformed ? H1::SURF_FLAG_SKINNED : 0;
-			//h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
+			// h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
 
 			h1_asset->vertCount = asset->vertCount;
 			h1_asset->triCount = asset->triCount;
@@ -239,39 +238,39 @@ namespace ZoneTool
 
 			// blend verts
 			memcpy(&h1_asset->blendVertCounts, &asset->vertInfo.vertCount, sizeof(asset->vertInfo.vertCount));
-			h1_asset->blendVerts = reinterpret_cast<unsigned short* __ptr64>(asset->vertInfo.vertsBlend);
+			h1_asset->blendVerts = reinterpret_cast<unsigned short *__ptr64>(asset->vertInfo.vertsBlend);
 
 			h1_asset->blendVertsTable = mem->Alloc<H1::BlendVertsUnknown>(asset->vertCount);
 			GenerateH1BlendVertsShit(h1_asset);
 
 			// triIndices
-			h1_asset->triIndices = reinterpret_cast<H1::Face * __ptr64>(asset->triIndices); // this is draw indices?
-			h1_asset->triIndices2 = mem->Alloc<H1::Face>(asset->triCount); // this is collision indices?
+			h1_asset->triIndices = reinterpret_cast<H1::Face *__ptr64>(asset->triIndices); // this is draw indices?
+			h1_asset->triIndices2 = mem->Alloc<H1::Face>(asset->triCount);				   // this is collision indices?
 			for (unsigned short i = 0; i < asset->triCount; i++)
 			{
 				memcpy(&h1_asset->triIndices2[i], &h1_asset->triIndices[i], sizeof(H1::Face));
 			}
 
 			// verts
-			//h1_asset->verts0.packedVerts0 = reinterpret_cast<IW6::GfxPackedVertex* __ptr64>(asset->verticies);
+			// h1_asset->verts0.packedVerts0 = reinterpret_cast<IW6::GfxPackedVertex* __ptr64>(asset->verticies);
 			h1_asset->verts0.packedVerts0 = mem->Alloc<H1::GfxPackedVertex>(asset->vertCount);
 			for (unsigned short i = 0; i < asset->vertCount; i++)
 			{
 				memcpy(&h1_asset->verts0.packedVerts0[i], &asset->verts0[i], sizeof(IW3::GfxPackedVertex));
 
-				float texCoord_unpacked[2]{ 0 };
+				float texCoord_unpacked[2]{0};
 				PackedShit::Vec2UnpackTexCoords(asset->verts0[i].texCoord, texCoord_unpacked);
 				std::swap(texCoord_unpacked[0], texCoord_unpacked[1]); // these are inverted...
 				h1_asset->verts0.packedVerts0[i].texCoord.packed = PackedShit::Vec2PackTexCoords(texCoord_unpacked).packed;
 
 				// re-calculate these...
-				float normal_unpacked[3]{ 0 };
+				float normal_unpacked[3]{0};
 				PackedShit::Vec3UnpackUnitVec(asset->verts0[i].normal, normal_unpacked);
 				h1_asset->verts0.packedVerts0[i].normal.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
 
 				// i don't understand why normal unpacked seems to be correct instead
-				//float tangent_unpacked[3]{ 0 };
-				//PackedShit::Vec3UnpackUnitVec(asset->verticies[i].tangent, tangent_unpacked);
+				// float tangent_unpacked[3]{ 0 };
+				// PackedShit::Vec3UnpackUnitVec(asset->verticies[i].tangent, tangent_unpacked);
 				h1_asset->verts0.packedVerts0[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
 			}
 
@@ -298,9 +297,9 @@ namespace ZoneTool
 				{
 					h1_asset->rigidVertLists[i].collisionTree = mem->Alloc<H1::XSurfaceCollisionTree>();
 					memcpy(&h1_asset->rigidVertLists[i].collisionTree->trans, &asset->vertList[i].collisionTree->trans,
-						sizeof(asset->vertList[i].collisionTree->trans));
+						   sizeof(asset->vertList[i].collisionTree->trans));
 					memcpy(&h1_asset->rigidVertLists[i].collisionTree->scale, &asset->vertList[i].collisionTree->scale,
-						sizeof(asset->vertList[i].collisionTree->scale));
+						   sizeof(asset->vertList[i].collisionTree->scale));
 
 					h1_asset->rigidVertLists[i].collisionTree->nodeCount = asset->vertList[i].collisionTree->nodeCount;
 					h1_asset->rigidVertLists[i].collisionTree->nodes = mem->Alloc<H1::XSurfaceCollisionNode>(
@@ -308,11 +307,11 @@ namespace ZoneTool
 					for (int j = 0; j < asset->vertList[i].collisionTree->nodeCount; j++)
 					{
 						memcpy(&h1_asset->rigidVertLists[i].collisionTree->nodes[j].aabb.mins,
-							&asset->vertList[i].collisionTree->nodes[j].aabb.mins,
-							sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.mins));
+							   &asset->vertList[i].collisionTree->nodes[j].aabb.mins,
+							   sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.mins));
 						memcpy(&h1_asset->rigidVertLists[i].collisionTree->nodes[j].aabb.maxs,
-							&asset->vertList[i].collisionTree->nodes[j].aabb.maxs,
-							sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.maxs));
+							   &asset->vertList[i].collisionTree->nodes[j].aabb.maxs,
+							   sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.maxs));
 
 						h1_asset->rigidVertLists[i].collisionTree->nodes[j].childBeginIndex =
 							asset->vertList[i].collisionTree->nodes[j].childBeginIndex;
@@ -335,13 +334,20 @@ namespace ZoneTool
 			memcpy(&h1_asset->partBits, &asset->partBits, sizeof(asset->partBits));
 		}
 
-		H1::XModelSurfs* GenerateH1XModelSurfs(XModel* model, int index, ZoneMemory* mem)
+		H1::XModelSurfs *GenerateH1XModelSurfs(XModel *model, int index, ZoneMemory *mem)
 		{
 			// allocate H1 XModelSurfs structure
 			const auto h1_asset = mem->Alloc<H1::XModelSurfs>();
 
 			h1_asset->name = mem->StrDup(va("%s_lod%d", model->name, index));
 			h1_asset->numsurfs = model->lodInfo[index].numsurfs;
+
+			if (h1_asset->numsurfs > 16)
+			{
+				h1_asset->numsurfs = 16;
+				//__debugbreak();
+			}
+
 			memcpy(&h1_asset->partBits, &model->lodInfo[index].partBits, sizeof(model->lodInfo[index].partBits));
 
 			h1_asset->surfs = mem->Alloc<H1::XSurface>(h1_asset->numsurfs);
@@ -349,12 +355,21 @@ namespace ZoneTool
 			for (unsigned short i = 0; i < h1_asset->numsurfs; i++)
 			{
 				GenerateH1XSurface(&h1_asset->surfs[i], &model->surfs[model->lodInfo[index].surfIndex + i], mem);
+
+				/// if (i != model->collLod)
+				//{
+				//	auto target = &h1_asset->surfs[i];
+				//	for (unsigned char k = 0; k < target->rigidVertListCount; k++)
+				//	{
+				//		target->rigidVertLists[k].collisionTree = nullptr; // Only collod is used
+				//	}
+				//}
 			}
 
 			return h1_asset;
 		}
 
-		void PrepareVertexWeights(H1::XSurface* asset)
+		void PrepareVertexWeights(H1::XSurface *asset)
 		{
 			// from: https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L577
 			// The index of read weight data
@@ -362,16 +377,17 @@ namespace ZoneTool
 			int blendVertsTotal = asset->blendVertCounts[0] + asset->blendVertCounts[1] + asset->blendVertCounts[2] + asset->blendVertCounts[3];
 			auto blendVerts = asset->blendVerts;
 			int currentPosition = 0;
-			struct WeightsData {
+			struct WeightsData
+			{
 				unsigned short BoneValues[4];
 				unsigned short WeightValues[4];
 				uint8_t WeightCount;
 			};
 
 			std::vector<WeightsData> Weights = std::vector<WeightsData>(asset->vertCount);
-			//ZONETOOL_INFO("vertCount: %d", asset->vertCount);
-			//ZONETOOL_INFO("blendVertsTotal: %d", blendVertsTotal);
-			//ZONETOOL_INFO("rigidVertListCount: %d", asset->rigidVertListCount);
+			// ZONETOOL_INFO("vertCount: %d", asset->vertCount);
+			// ZONETOOL_INFO("blendVertsTotal: %d", blendVertsTotal);
+			// ZONETOOL_INFO("rigidVertListCount: %d", asset->rigidVertListCount);
 
 			// Prepare the simple, rigid weights
 			for (uint32_t i = 0; i < asset->rigidVertListCount; i++)
@@ -381,16 +397,17 @@ namespace ZoneTool
 				uint32_t BoneIndex = 0;
 
 				// Read rigid struct, QS does not have the pointer
-				auto RigidInfo = reinterpret_cast<XRigidVertList*>(asset->rigidVertLists);
+				auto RigidInfo = reinterpret_cast<XRigidVertList *>(asset->rigidVertLists);
 				VertexCount = RigidInfo[i].vertCount;
 				BoneIndex = RigidInfo[i].boneOffset / 64;
-				//ZONETOOL_INFO("VertexCount: %d", VertexCount);
-				//ZONETOOL_INFO("BoneIndex: %d", BoneIndex);
+				// ZONETOOL_INFO("VertexCount: %d", VertexCount);
+				// ZONETOOL_INFO("BoneIndex: %d", BoneIndex);
 
 				// Apply bone ids properly
 				for (uint32_t w = 0; w < VertexCount; w++)
 				{
-					if (WeightDataIndex >= asset->vertCount) {
+					if (WeightDataIndex >= asset->vertCount)
+					{
 						// how could this even happen
 						break;
 					}
@@ -402,8 +419,6 @@ namespace ZoneTool
 					WeightDataIndex++;
 				}
 			}
-
-
 
 			// Prepare single bone weights
 			for (uint32_t w = 0; w < asset->blendVertCounts[0]; w++)
@@ -482,13 +497,16 @@ namespace ZoneTool
 			}
 
 			auto blendVertsTable = asset->blendVertsTable;
-			for (uint32_t i = 0; i < asset->vertCount; i++) {
+			for (uint32_t i = 0; i < asset->vertCount; i++)
+			{
 				blendVertsTable[i].blendVertCountIndex = Weights[i].WeightCount;
-				for (uint32_t bonePos = 0; bonePos < Weights[i].WeightCount; bonePos++) {
+				for (uint32_t bonePos = 0; bonePos < Weights[i].WeightCount; bonePos++)
+				{
 					blendVertsTable[i].b[bonePos] = Weights[i].BoneValues[bonePos];
 					// the first weight is to be computed so fall back
 					uint32_t weightPos = bonePos + 8 - 1;
-					if (bonePos != 0) {
+					if (bonePos != 0)
+					{
 						blendVertsTable[i].b[weightPos] = Weights[i].WeightValues[bonePos];
 					}
 				}
@@ -501,24 +519,24 @@ namespace ZoneTool
 			// Unpack a normal, used in [WAW, BO, MW, MW2, MW3]
 
 			// Convert to packed structure
-			uint8_t* PackedBytes = reinterpret_cast<uint8_t*>(&packed);
+			uint8_t *PackedBytes = reinterpret_cast<uint8_t *>(&packed);
 
 			// Decode the scale of the vector
 			float DecodeScale = (float)((float)PackedBytes[3] - -192.0) / 32385.0f;
 
 			return std::vector<float>{
-				(float)((float)PackedBytes[0] - 127.0)* DecodeScale,
-					(float)((float)PackedBytes[1] - 127.0)* DecodeScale,
-					(float)((float)PackedBytes[2] - 127.0)* DecodeScale};
+				(float)((float)PackedBytes[0] - 127.0) * DecodeScale,
+				(float)((float)PackedBytes[1] - 127.0) * DecodeScale,
+				(float)((float)PackedBytes[2] - 127.0) * DecodeScale};
 		}
 
-		unsigned int Vec3PackUnitVec(const std::vector<float>& vec) // h2 func
+		unsigned int Vec3PackUnitVec(const std::vector<float> &vec) // h2 func
 		{
-			float v2; // xmm0_8
+			float v2;		 // xmm0_8
 			unsigned int v3; // ebx
-			float v4; // xmm0_8
-			int v5; // ebx
-			float v6; // xmm0_8
+			float v4;		 // xmm0_8
+			int v5;			 // ebx
+			float v6;		 // xmm0_8
 
 			v2 = ((((fmaxf(-1.0f, fminf(1.0f, vec[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
 			v2 = floorf(v2);
@@ -533,18 +551,17 @@ namespace ZoneTool
 
 		std::vector<uint16_t> UnpackUV(unsigned int packed)
 		{
-			uint16_t* unpackedUV = reinterpret_cast<uint16_t*>(&packed);
+			uint16_t *unpackedUV = reinterpret_cast<uint16_t *>(&packed);
 			return std::vector<uint16_t>{
-				unpackedUV[0], unpackedUV[1]
-			};
+				unpackedUV[0], unpackedUV[1]};
 		}
 
-		void surf_convert_from_iw3(H1::XSurface* surf, XSurface* asset, ZoneMemory* mem)
+		void surf_convert_from_iw3(H1::XSurface *surf, XSurface *asset, ZoneMemory *mem)
 		{
 			// character assets have this set as 6 while weapons set this as 2...
 			surf->flags = 0;
 			surf->flags |= asset->deformed ? H1::SURF_FLAG_SKINNED : 0;
-			//h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
+			// h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
 
 			surf->vertCount = asset->vertCount;
 			surf->triCount = asset->triCount;
@@ -560,52 +577,52 @@ namespace ZoneTool
 
 			for (int v = 0; v < asset->vertCount; v++)
 			{
-				auto& vert = packedVerts0[v];
+				auto &vert = packedVerts0[v];
 				memcpy(vert.xyz, asset->verts0[v].xyz, sizeof(H1::GfxPackedVertex::xyz));
 				vert.binormalSign = asset->verts0[v].binormalSign;
 
-				//reverse the UV axis
+				// reverse the UV axis
 				auto uv_unpacked = UnpackUV(asset->verts0[v].texCoord.packed);
 				unsigned int uv_packed = ((unsigned int)uv_unpacked[1]) | ((unsigned int)uv_unpacked[0] << 16);
 
 				auto normal_unpacked = UnpackVector(asset->verts0[v].normal.packed);
 				unsigned int normal_packed = Vec3PackUnitVec(normal_unpacked);
-				//auto tangent_unpacked = UnpackVector(asset->verts0[v].tangent.packed);
-				//unsigned int tangent_packed = Vec3PackUnitVec(tangent_unpacked);
+				// auto tangent_unpacked = UnpackVector(asset->verts0[v].tangent.packed);
+				// unsigned int tangent_packed = Vec3PackUnitVec(tangent_unpacked);
 
 				vert.color = {
 					.packed = asset->verts0[v].color.packed,
 				};
 				vert.texCoord = {
-					.packed = uv_packed };
+					.packed = uv_packed};
 				vert.normal = {
-					.packed = normal_packed };
+					.packed = normal_packed};
 				vert.tangent = {
-					.packed = normal_packed };
+					.packed = normal_packed};
 
 				memcpy(unknown0[v].xyz, vert.xyz, sizeof(unknown0[v].xyz));
 				unknown0[v].normal = vert.normal;
 			}
 
-			surf->unknown0 = reinterpret_cast<H1::UnknownXSurface0 * __ptr64>(unknown0);
-			surf->verts0.packedVerts0 = reinterpret_cast<H1::GfxPackedVertex * __ptr64>(packedVerts0);
+			surf->unknown0 = reinterpret_cast<H1::UnknownXSurface0 *__ptr64>(unknown0);
+			surf->verts0.packedVerts0 = reinterpret_cast<H1::GfxPackedVertex *__ptr64>(packedVerts0);
 
-			//auto triIndices = new H1::Face[asset->triCount]();
-			//auto triIndices2 = new H1::Face[asset->triCount]();
-			//for (int f = 0; f < asset->triCount; f++)
+			// auto triIndices = new H1::Face[asset->triCount]();
+			// auto triIndices2 = new H1::Face[asset->triCount]();
+			// for (int f = 0; f < asset->triCount; f++)
 			//{
 			//	auto& face = triIndices[f];
 			//	face.v1 = asset->triIndices[f].v1;
 			//	face.v2 = asset->triIndices[f].v2;
 			//	face.v3 = asset->triIndices[f].v3;
-			//}
-			//memcpy(triIndices2, triIndices, asset->triCount * sizeof(H1::Face));
-			//surf->triIndices = reinterpret_cast<std::uint64_t>(triIndices);
-			//surf->triIndices2 = reinterpret_cast<std::uint64_t>(triIndices2);
+			// }
+			// memcpy(triIndices2, triIndices, asset->triCount * sizeof(H1::Face));
+			// surf->triIndices = reinterpret_cast<std::uint64_t>(triIndices);
+			// surf->triIndices2 = reinterpret_cast<std::uint64_t>(triIndices2);
 
 			// triIndices
-			surf->triIndices = reinterpret_cast<H1::Face * __ptr64>(asset->triIndices); // this is draw indices?
-			surf->triIndices2 = mem->Alloc<H1::Face>(asset->triCount); // this is collision indices?
+			surf->triIndices = reinterpret_cast<H1::Face *__ptr64>(asset->triIndices); // this is draw indices?
+			surf->triIndices2 = mem->Alloc<H1::Face>(asset->triCount);				   // this is collision indices?
 			for (unsigned short i = 0; i < asset->triCount; i++)
 			{
 				memcpy(&surf->triIndices2[i], &surf->triIndices[i], sizeof(H1::Face));
@@ -635,7 +652,7 @@ namespace ZoneTool
 						nodes[n].childBeginIndex = asset->vertList[j].collisionTree->nodes[n].childBeginIndex;
 						nodes[n].childCount = asset->vertList[j].collisionTree->nodes[n].childCount;
 					}
-					collisionTree->nodes = reinterpret_cast<H1::XSurfaceCollisionNode * __ptr64>(nodes);
+					collisionTree->nodes = reinterpret_cast<H1::XSurfaceCollisionNode *__ptr64>(nodes);
 
 					collisionTree->leafCount = asset->vertList[j].collisionTree->leafCount;
 					auto leafs = new H1::XSurfaceCollisionLeaf[collisionTree->leafCount]();
@@ -643,12 +660,12 @@ namespace ZoneTool
 					{
 						leafs[n].triangleBeginIndex = asset->vertList[j].collisionTree->leafs[n].triangleBeginIndex;
 					}
-					collisionTree->leafs = reinterpret_cast<H1::XSurfaceCollisionLeaf * __ptr64>(leafs);
+					collisionTree->leafs = reinterpret_cast<H1::XSurfaceCollisionLeaf *__ptr64>(leafs);
 
-					vertList[j].collisionTree = reinterpret_cast<H1::XSurfaceCollisionTree * __ptr64>(collisionTree);
+					vertList[j].collisionTree = reinterpret_cast<H1::XSurfaceCollisionTree *__ptr64>(collisionTree);
 				}
 			}
-			surf->rigidVertLists = reinterpret_cast<H1::XRigidVertList * __ptr64>(vertList);
+			surf->rigidVertLists = reinterpret_cast<H1::XRigidVertList *__ptr64>(vertList);
 
 			if (blendVertsTotal > 0)
 			{
@@ -657,17 +674,351 @@ namespace ZoneTool
 				{
 					blendVerts[j] = asset->vertInfo.vertsBlend[j];
 				}
-				surf->blendVerts = reinterpret_cast<H1::XBlendInfo * __ptr64>(blendVerts);
+				surf->blendVerts = reinterpret_cast<H1::XBlendInfo *__ptr64>(blendVerts);
 			}
 
 			auto blendVertsTable = new H1::BlendVertsUnknown[asset->vertCount]();
-			surf->blendVertsTable = reinterpret_cast<H1::BlendVertsUnknown * __ptr64>(blendVertsTable);
+			surf->blendVertsTable = reinterpret_cast<H1::BlendVertsUnknown *__ptr64>(blendVertsTable);
 			PrepareVertexWeights(surf);
 
 			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
 		}
 
-		H1::XModelSurfs* convert_from_iw3(XModel* model, int index, ZoneMemory* mem)
+		H1::XModelSurfs *convert_from_iw3(XModel *model, int index, ZoneMemory *mem)
+		{
+			// allocate H1 XModelSurfs structure
+			const auto h1_asset = mem->Alloc<H1::XModelSurfs>();
+
+			h1_asset->name = mem->StrDup(va("%s_lod%d", model->name, index));
+			h1_asset->numsurfs = model->lodInfo[index].numsurfs;
+			memcpy(&h1_asset->partBits, &model->lodInfo[index].partBits, sizeof(model->lodInfo[index].partBits));
+
+			h1_asset->surfs = mem->Alloc<H1::XSurface>(h1_asset->numsurfs);
+
+			for (unsigned short i = 0; i < h1_asset->numsurfs; i++)
+			{
+				surf_convert_from_iw3(&h1_asset->surfs[i], &model->surfs[model->lodInfo[index].surfIndex + i], mem);
+			}
+
+			return h1_asset;
+		}
+
+		void PrepareVertexWeights(H1::XSurface *asset)
+		{
+			// from: https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L577
+			// The index of read weight data
+			uint32_t WeightDataIndex = 0;
+			int blendVertsTotal = asset->blendVertCounts[0] + asset->blendVertCounts[1] + asset->blendVertCounts[2] + asset->blendVertCounts[3];
+			auto blendVerts = asset->blendVerts;
+			int currentPosition = 0;
+			struct WeightsData
+			{
+				unsigned short BoneValues[4];
+				unsigned short WeightValues[4];
+				uint8_t WeightCount;
+			};
+
+			std::vector<WeightsData> Weights = std::vector<WeightsData>(asset->vertCount);
+			// ZONETOOL_INFO("vertCount: %d", asset->vertCount);
+			// ZONETOOL_INFO("blendVertsTotal: %d", blendVertsTotal);
+			// ZONETOOL_INFO("rigidVertListCount: %d", asset->rigidVertListCount);
+
+			// Prepare the simple, rigid weights
+			for (uint32_t i = 0; i < asset->rigidVertListCount; i++)
+			{
+				// Simple weights build, rigid, just apply the proper bone id
+				uint32_t VertexCount = 0;
+				uint32_t BoneIndex = 0;
+
+				// Read rigid struct, QS does not have the pointer
+				auto RigidInfo = reinterpret_cast<XRigidVertList *>(asset->rigidVertLists);
+				VertexCount = RigidInfo[i].vertCount;
+				BoneIndex = RigidInfo[i].boneOffset / 64;
+				// ZONETOOL_INFO("VertexCount: %d", VertexCount);
+				// ZONETOOL_INFO("BoneIndex: %d", BoneIndex);
+
+				// Apply bone ids properly
+				for (uint32_t w = 0; w < VertexCount; w++)
+				{
+					if (WeightDataIndex >= asset->vertCount)
+					{
+						// how could this even happen
+						break;
+					}
+					Weights[WeightDataIndex].WeightCount = 1;
+					// Apply
+					Weights[WeightDataIndex].BoneValues[0] = BoneIndex;
+					Weights[WeightDataIndex].WeightValues[0] = 65536;
+					// Advance
+					WeightDataIndex++;
+				}
+			}
+
+			// Prepare single bone weights
+			for (uint32_t w = 0; w < asset->blendVertCounts[0]; w++)
+			{
+				Weights[WeightDataIndex].WeightCount = 1;
+				// Apply
+				Weights[WeightDataIndex].BoneValues[0] = (blendVerts[currentPosition++] / 64);
+				Weights[WeightDataIndex].WeightValues[0] = 65536;
+				// Advance
+				WeightDataIndex++;
+			}
+
+			// Prepare two bone weights
+			for (uint32_t w = 0; w < asset->blendVertCounts[1]; w++)
+			{
+				// Set size
+				Weights[WeightDataIndex].WeightCount = 2;
+
+				// Read IDs (1, 2)
+				Weights[WeightDataIndex].BoneValues[0] = (blendVerts[currentPosition++] / 64);
+				Weights[WeightDataIndex].BoneValues[1] = (blendVerts[currentPosition++] / 64);
+				// Read value for 2 and calculate 1
+				Weights[WeightDataIndex].WeightValues[1] = blendVerts[currentPosition++];
+				Weights[WeightDataIndex].WeightValues[0] = (65536 - Weights[WeightDataIndex].WeightValues[1]);
+
+				// Advance
+				WeightDataIndex++;
+			}
+
+			// Prepare three bone weights
+			for (uint32_t w = 0; w < asset->blendVertCounts[2]; w++)
+			{
+				// Set size
+				Weights[WeightDataIndex].WeightCount = 3;
+
+				// Read 2 IDs (1, 2)
+				Weights[WeightDataIndex].BoneValues[0] = (blendVerts[currentPosition++] / 64);
+				Weights[WeightDataIndex].BoneValues[1] = (blendVerts[currentPosition++] / 64);
+				// Read value for 2
+				Weights[WeightDataIndex].WeightValues[1] = blendVerts[currentPosition++];
+				// Read 1 ID (3)
+				Weights[WeightDataIndex].BoneValues[2] = (blendVerts[currentPosition++] / 64);
+				// Read value for 3
+				Weights[WeightDataIndex].WeightValues[2] = blendVerts[currentPosition++];
+				// Calculate first value
+				Weights[WeightDataIndex].WeightValues[0] = (65536 - (Weights[WeightDataIndex].WeightValues[1] + Weights[WeightDataIndex].WeightValues[2]));
+
+				// Advance
+				WeightDataIndex++;
+			}
+
+			// Prepare four bone weights
+			for (uint32_t w = 0; w < asset->blendVertCounts[3]; w++)
+			{
+				// Set size
+				Weights[WeightDataIndex].WeightCount = 4;
+
+				// Read 2 IDs (1, 2)
+				Weights[WeightDataIndex].BoneValues[0] = (blendVerts[currentPosition++] / 64);
+				Weights[WeightDataIndex].BoneValues[1] = (blendVerts[currentPosition++] / 64);
+				// Read value for 2
+				Weights[WeightDataIndex].WeightValues[1] = blendVerts[currentPosition++];
+				// Read 1 ID (3)
+				Weights[WeightDataIndex].BoneValues[2] = (blendVerts[currentPosition++] / 64);
+				// Read value for 3
+				Weights[WeightDataIndex].WeightValues[2] = blendVerts[currentPosition++];
+				// Read 1 ID (4)
+				Weights[WeightDataIndex].BoneValues[3] = (blendVerts[currentPosition++] / 64);
+				// Read value for 4
+				Weights[WeightDataIndex].WeightValues[3] = blendVerts[currentPosition++];
+				// Calculate first value
+				Weights[WeightDataIndex].WeightValues[0] = (65536 - (Weights[WeightDataIndex].WeightValues[1] + Weights[WeightDataIndex].WeightValues[2] + Weights[WeightDataIndex].WeightValues[3]));
+
+				// Advance
+				WeightDataIndex++;
+			}
+
+			auto blendVertsTable = asset->blendVertsTable;
+			for (uint32_t i = 0; i < asset->vertCount; i++)
+			{
+				blendVertsTable[i].blendVertCountIndex = Weights[i].WeightCount;
+				for (uint32_t bonePos = 0; bonePos < Weights[i].WeightCount; bonePos++)
+				{
+					blendVertsTable[i].b[bonePos] = Weights[i].BoneValues[bonePos];
+					// the first weight is to be computed so fall back
+					uint32_t weightPos = bonePos + 8 - 1;
+					if (bonePos != 0)
+					{
+						blendVertsTable[i].b[weightPos] = Weights[i].WeightValues[bonePos];
+					}
+				}
+			}
+		}
+
+		std::vector<float> UnpackVector(unsigned int packed)
+		{
+			// https://github.com/Scobalula/Greyhound/blob/15641dae5383190e43b2396d12b8868723735917/src/WraithXCOD/WraithXCOD/CoDXModelTranslator.cpp#L527
+			// Unpack a normal, used in [WAW, BO, MW, MW2, MW3]
+
+			// Convert to packed structure
+			uint8_t *PackedBytes = reinterpret_cast<uint8_t *>(&packed);
+
+			// Decode the scale of the vector
+			float DecodeScale = (float)((float)PackedBytes[3] - -192.0) / 32385.0f;
+
+			return std::vector<float>{
+				(float)((float)PackedBytes[0] - 127.0) * DecodeScale,
+				(float)((float)PackedBytes[1] - 127.0) * DecodeScale,
+				(float)((float)PackedBytes[2] - 127.0) * DecodeScale};
+		}
+
+		unsigned int Vec3PackUnitVec(const std::vector<float> &vec) // h2 func
+		{
+			float v2;		 // xmm0_8
+			unsigned int v3; // ebx
+			float v4;		 // xmm0_8
+			int v5;			 // ebx
+			float v6;		 // xmm0_8
+
+			v2 = ((((fmaxf(-1.0f, fminf(1.0f, vec[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+			v2 = floorf(v2);
+			v3 = ((int)v2 | 0xFFFFFC00) << 10;
+			v4 = ((((fmaxf(-1.0f, fminf(1.0f, vec[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+			v4 = floorf(v4);
+			v5 = ((int)v4 | v3) << 10;
+			v6 = ((((fmaxf(-1.0f, fminf(1.0f, vec[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
+			v6 = floorf(v6);
+			return (unsigned int)(v5 | (int)v6);
+		}
+
+		std::vector<uint16_t> UnpackUV(unsigned int packed)
+		{
+			uint16_t *unpackedUV = reinterpret_cast<uint16_t *>(&packed);
+			return std::vector<uint16_t>{
+				unpackedUV[0], unpackedUV[1]};
+		}
+
+		void surf_convert_from_iw3(H1::XSurface *surf, XSurface *asset, ZoneMemory *mem)
+		{
+			// character assets have this set as 6 while weapons set this as 2...
+			surf->flags = 0;
+			surf->flags |= asset->deformed ? H1::SURF_FLAG_SKINNED : 0;
+			// h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
+
+			surf->vertCount = asset->vertCount;
+			surf->triCount = asset->triCount;
+			surf->rigidVertListCount = asset->vertListCount;
+			memcpy(&surf->blendVertCounts, &asset->vertInfo.vertCount, sizeof(asset->vertInfo.vertCount));
+
+			int blendVertsDataLength = asset->vertInfo.vertCount[0] + 3 * asset->vertInfo.vertCount[1] + 5 * asset->vertInfo.vertCount[2] + 7 * asset->vertInfo.vertCount[3];
+
+			int blendVertsTotal = asset->vertInfo.vertCount[0] + asset->vertInfo.vertCount[1] + asset->vertInfo.vertCount[2] + asset->vertInfo.vertCount[3];
+
+			auto packedVerts0 = new H1::GfxPackedVertex[asset->vertCount]();
+			auto unknown0 = new H1::UnknownXSurface0[asset->vertCount]();
+
+			for (int v = 0; v < asset->vertCount; v++)
+			{
+				auto &vert = packedVerts0[v];
+				memcpy(vert.xyz, asset->verts0[v].xyz, sizeof(H1::GfxPackedVertex::xyz));
+				vert.binormalSign = asset->verts0[v].binormalSign;
+
+				// reverse the UV axis
+				auto uv_unpacked = UnpackUV(asset->verts0[v].texCoord.packed);
+				unsigned int uv_packed = ((unsigned int)uv_unpacked[1]) | ((unsigned int)uv_unpacked[0] << 16);
+
+				auto normal_unpacked = UnpackVector(asset->verts0[v].normal.packed);
+				unsigned int normal_packed = Vec3PackUnitVec(normal_unpacked);
+				// auto tangent_unpacked = UnpackVector(asset->verts0[v].tangent.packed);
+				// unsigned int tangent_packed = Vec3PackUnitVec(tangent_unpacked);
+
+				vert.color = {
+					.packed = asset->verts0[v].color.packed,
+				};
+				vert.texCoord = {
+					.packed = uv_packed};
+				vert.normal = {
+					.packed = normal_packed};
+				vert.tangent = {
+					.packed = normal_packed};
+
+				memcpy(unknown0[v].xyz, vert.xyz, sizeof(unknown0[v].xyz));
+				unknown0[v].normal = vert.normal;
+			}
+
+			surf->unknown0 = reinterpret_cast<H1::UnknownXSurface0 *__ptr64>(unknown0);
+			surf->verts0.packedVerts0 = reinterpret_cast<H1::GfxPackedVertex *__ptr64>(packedVerts0);
+
+			// auto triIndices = new H1::Face[asset->triCount]();
+			// auto triIndices2 = new H1::Face[asset->triCount]();
+			// for (int f = 0; f < asset->triCount; f++)
+			//{
+			//	auto& face = triIndices[f];
+			//	face.v1 = asset->triIndices[f].v1;
+			//	face.v2 = asset->triIndices[f].v2;
+			//	face.v3 = asset->triIndices[f].v3;
+			// }
+			// memcpy(triIndices2, triIndices, asset->triCount * sizeof(H1::Face));
+			// surf->triIndices = reinterpret_cast<std::uint64_t>(triIndices);
+			// surf->triIndices2 = reinterpret_cast<std::uint64_t>(triIndices2);
+
+			// triIndices
+			surf->triIndices = reinterpret_cast<H1::Face *__ptr64>(asset->triIndices); // this is draw indices?
+			surf->triIndices2 = mem->Alloc<H1::Face>(asset->triCount);				   // this is collision indices?
+			for (unsigned short i = 0; i < asset->triCount; i++)
+			{
+				memcpy(&surf->triIndices2[i], &surf->triIndices[i], sizeof(H1::Face));
+			}
+
+			surf->rigidVertListCount = asset->vertListCount;
+			auto vertList = new H1::XRigidVertList[asset->vertListCount]();
+			for (int j = 0; j < asset->vertListCount; j++)
+			{
+				vertList[j].boneOffset = asset->vertList[j].boneOffset;
+				vertList[j].vertCount = asset->vertList[j].vertCount;
+				vertList[j].triOffset = asset->vertList[j].triOffset;
+				vertList[j].triCount = asset->vertList[j].triCount;
+				vertList[j].collisionTree = 0;
+
+				if (asset->vertList[j].collisionTree)
+				{
+					auto collisionTree = new H1::XSurfaceCollisionTree();
+					memcpy(collisionTree->trans, asset->vertList[j].collisionTree->trans, sizeof(asset->vertList[j].collisionTree->trans));
+					memcpy(collisionTree->scale, asset->vertList[j].collisionTree->scale, sizeof(asset->vertList[j].collisionTree->scale));
+					collisionTree->nodeCount = asset->vertList[j].collisionTree->nodeCount;
+					auto nodes = new H1::XSurfaceCollisionNode[collisionTree->nodeCount]();
+					for (int n = 0; n < collisionTree->nodeCount; n++)
+					{
+						memcpy(nodes[n].aabb.mins, asset->vertList[j].collisionTree->nodes[n].aabb.mins, sizeof(asset->vertList[j].collisionTree->nodes[n].aabb.mins));
+						memcpy(nodes[n].aabb.maxs, asset->vertList[j].collisionTree->nodes[n].aabb.maxs, sizeof(asset->vertList[j].collisionTree->nodes[n].aabb.maxs));
+						nodes[n].childBeginIndex = asset->vertList[j].collisionTree->nodes[n].childBeginIndex;
+						nodes[n].childCount = asset->vertList[j].collisionTree->nodes[n].childCount;
+					}
+					collisionTree->nodes = reinterpret_cast<H1::XSurfaceCollisionNode *__ptr64>(nodes);
+
+					collisionTree->leafCount = asset->vertList[j].collisionTree->leafCount;
+					auto leafs = new H1::XSurfaceCollisionLeaf[collisionTree->leafCount]();
+					for (int n = 0; n < collisionTree->leafCount; n++)
+					{
+						leafs[n].triangleBeginIndex = asset->vertList[j].collisionTree->leafs[n].triangleBeginIndex;
+					}
+					collisionTree->leafs = reinterpret_cast<H1::XSurfaceCollisionLeaf *__ptr64>(leafs);
+
+					vertList[j].collisionTree = reinterpret_cast<H1::XSurfaceCollisionTree *__ptr64>(collisionTree);
+				}
+			}
+			surf->rigidVertLists = reinterpret_cast<H1::XRigidVertList *__ptr64>(vertList);
+
+			if (blendVertsTotal > 0)
+			{
+				auto blendVerts = new H1::XBlendInfo[blendVertsDataLength]();
+				for (int j = 0; j < blendVertsDataLength; j++)
+				{
+					blendVerts[j] = asset->vertInfo.vertsBlend[j];
+				}
+				surf->blendVerts = reinterpret_cast<H1::XBlendInfo *__ptr64>(blendVerts);
+			}
+
+			auto blendVertsTable = new H1::BlendVertsUnknown[asset->vertCount]();
+			surf->blendVertsTable = reinterpret_cast<H1::BlendVertsUnknown *__ptr64>(blendVertsTable);
+			PrepareVertexWeights(surf);
+
+			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
+		}
+
+		H1::XModelSurfs *convert_from_iw3(XModel *model, int index, ZoneMemory *mem)
 		{
 			// allocate H1 XModelSurfs structure
 			const auto h1_asset = mem->Alloc<H1::XModelSurfs>();
@@ -688,8 +1039,7 @@ namespace ZoneTool
 
 		namespace
 		{
-			H1::CSurfaceFlags surf_flags_conversion_table[29]
-			{
+			H1::CSurfaceFlags surf_flags_conversion_table[29]{
 				H1::SURF_FLAG_DEFAULT,
 				H1::SURF_FLAG_BARK,
 				H1::SURF_FLAG_BRICK,
@@ -719,7 +1069,8 @@ namespace ZoneTool
 				H1::SURF_FLAG_CUSHION,
 				H1::SURF_FLAG_FRUIT,
 				H1::SURF_FLAG_PAINTEDMETAL,
-			}; IW3::CSurfaceFlags;
+			};
+			IW3::CSurfaceFlags;
 
 			int convert_surf_flags(int flags)
 			{
@@ -763,10 +1114,10 @@ namespace ZoneTool
 			}
 		}
 
-		H1::XModel* GenerateH1Model(XModel* asset, ZoneMemory* mem)
+		H1::XModel *GenerateH1Model(XModel *asset, ZoneMemory *mem)
 		{
 			// allocate H1 XModel structure
-			auto* h1_asset = mem->Alloc<H1::XModel>();
+			auto *h1_asset = mem->Alloc<H1::XModel>();
 
 			h1_asset->name = asset->name;
 			h1_asset->numBones = asset->numBones;
@@ -784,14 +1135,14 @@ namespace ZoneTool
 			}
 
 			REINTERPRET_CAST_SAFE(h1_asset->parentList, asset->parentList);
-			h1_asset->tagAngles = reinterpret_cast<H1::XModelAngle*>(asset->quats); // this is fine
-			h1_asset->tagPositions = reinterpret_cast<H1::XModelTagPos*>(asset->trans); // this is fine
+			h1_asset->tagAngles = reinterpret_cast<H1::XModelAngle *>(asset->quats);	 // this is fine
+			h1_asset->tagPositions = reinterpret_cast<H1::XModelTagPos *>(asset->trans); // this is fine
 			REINTERPRET_CAST_SAFE(h1_asset->partClassification, asset->partClassification);
 			REINTERPRET_CAST_SAFE(h1_asset->baseMat, asset->baseMat);
 			h1_asset->reactiveMotionParts = nullptr;
 			h1_asset->reactiveMotionTweaks = nullptr;
 
-			h1_asset->materialHandles = mem->Alloc<H1::Material* __ptr64>(asset->numsurfs);
+			h1_asset->materialHandles = mem->Alloc<H1::Material *__ptr64>(asset->numsurfs);
 			for (auto i = 0; i < asset->numsurfs; i++)
 			{
 				if (asset->materialHandles[i])
@@ -803,28 +1154,35 @@ namespace ZoneTool
 
 			for (auto i = 0; i < 6; i++)
 			{
-				h1_asset->lodInfo[i].dist = 1000000.0f;
+				h1_asset->lodInfo[i].dist = 1000000.00f;
 			}
 
 			// level of detail data
 			for (auto i = 0; i < asset->numLods; i++)
 			{
 				h1_asset->lodInfo[i].dist = asset->lodInfo[i].dist;
+
 				h1_asset->lodInfo[i].numsurfs = asset->lodInfo[i].numsurfs;
 				h1_asset->lodInfo[i].surfIndex = asset->lodInfo[i].surfIndex;
 
-				//h1_asset->lodInfo[i].modelSurfs = GenerateH1XModelSurfs(asset, i, mem);
+				if (h1_asset->lodInfo[i].numsurfs > 16)
+				{
+					h1_asset->lodInfo[i].numsurfs = 16;
+					//__debugbreak();
+				}
+
+				// h1_asset->lodInfo[i].modelSurfs = GenerateH1XModelSurfs(asset, i, mem);
 				h1_asset->lodInfo[i].modelSurfs = convert_from_iw3(asset, i, mem);
-				
+
 				H1::IXSurface::dump(h1_asset->lodInfo[i].modelSurfs);
 
 				memcpy(&h1_asset->lodInfo[i].partBits, &asset->lodInfo[i].partBits, sizeof(asset->lodInfo[i].partBits));
 
 				// not sure if correct
-				memcpy(&h1_asset->lodInfo[i].unknown, &asset->lodInfo[i].lod, 4);
+				// memcpy(&h1_asset->lodInfo[i].unknown, &asset->lodInfo[i].lod, 4);
 			}
 
-			//h1_asset->maxLoadedLod = asset->maxLoadedLod;
+			// h1_asset->maxLoadedLod = asset->maxLoadedLod;
 			h1_asset->numLods = static_cast<char>(asset->numLods);
 			h1_asset->collLod = static_cast<char>(asset->collLod);
 			h1_asset->numCompositeModels = 0;
@@ -846,8 +1204,8 @@ namespace ZoneTool
 			h1_asset->boneInfo = mem->Alloc<H1::XBoneInfo>(asset->numBones);
 			for (char i = 0; i < asset->numBones; ++i)
 			{
-				auto* target = &h1_asset->boneInfo[i];
-				auto* source = &asset->boneInfo[i];
+				auto *target = &h1_asset->boneInfo[i];
+				auto *source = &asset->boneInfo[i];
 
 				target->radiusSquared = source->radiusSquared;
 
@@ -870,21 +1228,22 @@ namespace ZoneTool
 			if (asset->physGeoms)
 			{
 				// todo:
+				h1_asset->physCollmap = nullptr;
 			}
 
 			// idk
 			h1_asset->invHighMipRadius = mem->Alloc<unsigned short>(asset->numsurfs);
 			for (unsigned char i = 0; i < asset->numsurfs; i++)
 			{
-				h1_asset->invHighMipRadius[i] = -1;
+				h1_asset->invHighMipRadius[i] = 0xFFFF;
 			}
 
-			h1_asset->quantization = 0.0f; //1.0f;
+			h1_asset->quantization = 0.0f; // 1.0f;
 
 			return h1_asset;
 		}
 
-		void IXModel::dump(XModel* asset, ZoneMemory* mem)
+		void IXModel::dump(XModel *asset, ZoneMemory *mem)
 		{
 			// generate h1 model
 			auto h1_asset = GenerateH1Model(asset, mem);

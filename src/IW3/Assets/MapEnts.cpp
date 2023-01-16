@@ -302,6 +302,122 @@ namespace
 			}
 		}
 	}
+
+	namespace entitystrings
+	{
+		class ents
+		{
+		public:
+
+			ents() {};
+			ents(const char* string, size_t lenPlusOne) : ents(std::string(string, lenPlusOne - 1)) {}
+			ents(std::string buffer) : ents() { this->parse(buffer); };
+			ents(const ents& obj) : entities(obj.entities) {};
+
+			std::string build()
+			{
+				std::string entityString;
+
+				for (auto& entity : this->entities)
+				{
+					entityString.append("{\n");
+
+					for (auto& property : entity)
+					{
+						entityString.push_back('"');
+						entityString.append(property.first);
+						entityString.append("\" \"");
+						entityString.append(property.second);
+						entityString.append("\"\n");
+					}
+
+					entityString.append("}\n");
+				}
+
+				return entityString;
+			}
+
+		private:
+			enum
+			{
+				PARSE_AWAIT_KEY,
+				PARSE_READ_KEY,
+				PARSE_AWAIT_VALUE,
+				PARSE_READ_VALUE,
+			};
+
+			std::vector<std::unordered_map<std::string, std::string>> entities;
+
+			void parse(std::string buffer)
+			{
+				int parseState = 0;
+				std::string key;
+				std::string value;
+				std::unordered_map<std::string, std::string> entity;
+
+				for (unsigned int i = 0; i < buffer.size(); ++i)
+				{
+					char character = buffer[i];
+					if (character == '{')
+					{
+						entity.clear();
+					}
+
+					switch (character)
+					{
+					case '{':
+					{
+						entity.clear();
+						break;
+					}
+
+					case '}':
+					{
+						this->entities.push_back(entity);
+						entity.clear();
+						break;
+					}
+
+					case '"':
+					{
+						if (parseState == PARSE_AWAIT_KEY)
+						{
+							key.clear();
+							parseState = PARSE_READ_KEY;
+						}
+						else if (parseState == PARSE_READ_KEY)
+						{
+							parseState = PARSE_AWAIT_VALUE;
+						}
+						else if (parseState == PARSE_AWAIT_VALUE)
+						{
+							value.clear();
+							parseState = PARSE_READ_VALUE;
+						}
+						else if (parseState == PARSE_READ_VALUE)
+						{
+							entity[to_lower_copy(key)] = value;
+							parseState = PARSE_AWAIT_KEY;
+						}
+						else
+						{
+							throw std::runtime_error("Parsing error!");
+						}
+						break;
+					}
+
+					default:
+					{
+						if (parseState == PARSE_READ_KEY) key.push_back(character);
+						else if (parseState == PARSE_READ_VALUE) value.push_back(character);
+
+						break;
+					}
+					}
+				}
+			}
+		};
+	}
 }
 
 namespace ZoneTool
@@ -317,6 +433,15 @@ namespace ZoneTool
 
 			h1_asset->entityString = asset->entityString;
 			h1_asset->numEntityChars = asset->numEntityChars;
+
+			// ents
+			std::string ents_string = std::string(asset->entityString, asset->numEntityChars - 1);
+			auto ents = entitystrings::ents(ents_string);
+
+			ents_string = ents.build();
+
+			h1_asset->entityString = mem->StrDup(ents_string);
+			h1_asset->numEntityChars = ents_string.length() + 1;
 
 			h1_asset->trigger.count = asset->trigger.count;
 			h1_asset->trigger.models = reinterpret_cast<H1::TriggerModel*>(asset->trigger.models);
@@ -346,7 +471,7 @@ namespace ZoneTool
 			h1_asset->clientTrigger.unk3 = nullptr;
 			h1_asset->clientTrigger.unk4 = nullptr;
 			h1_asset->clientTrigger.unk5 = nullptr;
-			//h1_asset->clientTrigger.__pad0;
+			h1_asset->clientTrigger.unk6 = nullptr;
 
 			h1_asset->clientTriggerBlend.numClientTriggerBlendNodes = 0;
 			h1_asset->clientTriggerBlend.blendNodes = nullptr;

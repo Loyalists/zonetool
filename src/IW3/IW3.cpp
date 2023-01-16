@@ -94,7 +94,7 @@ namespace ZoneTool
 
 			if (!memory)
 			{
-				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 128);		// 128mb
+				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 512);		// 512mb
 			}
 			
 			// nice meme
@@ -137,6 +137,18 @@ namespace ZoneTool
 					asset.ptr.data = ref_asset;
 
 					ZONETOOL_INFO("Dumping additional asset \"%s\" because it is referenced by %s.", asset_name, currentDumpingZone.data());
+
+					if (ref.first == XAssetType::xmodel)
+					{
+						auto* xmodel = reinterpret_cast<XModel*>(ref_asset);
+						for (auto i = 0; i < xmodel->numsurfs; i++)
+						{
+							XAsset material_asset;
+							material_asset.type = XAssetType::material;
+							material_asset.ptr.data = xmodel->materialHandles[i];
+							HandleAsset(&material_asset);
+						}
+					}
 					
 					HandleAsset(&asset);
 				}
