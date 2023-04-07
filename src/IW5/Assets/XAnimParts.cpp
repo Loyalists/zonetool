@@ -188,13 +188,13 @@ namespace ZoneTool
 			return h1_asset;
 		}
 
-		void IXAnimParts::dump(XAnimParts* asset, ZoneMemory* mem)
+		void IXAnimParts::dump(XAnimParts* asset, ZoneMemory* mem, const std::function<const char* (uint16_t)>& convertToString)
 		{
 			// generate h1 anims
 			auto h1_asset = GenerateH1XAnimParts(asset, mem);
 
 			// dump h1 anims
-			H1::IXAnimParts::dump(h1_asset, SL_ConvertToString);
+			H1::IXAnimParts::dump(h1_asset, convertToString);
 		}
 	}
 }

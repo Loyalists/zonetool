@@ -32,9 +32,93 @@ namespace ZoneTool
 			}
 		}
 
+		FS_Read_t FS_Read;
+
+		void fs_file_close(int handle)
+		{
+			static DWORD func = 0x524E10;
+
+			__asm
+			{
+				push ecx
+
+				mov eax, handle
+				mov ecx, func
+				call ecx
+
+				pop ecx
+			}
+		}
+
+		int fs_fopen_file_read_for_thread(const char* filename, int* file, int thread)
+		{
+			static DWORD func = 0x525330;
+			int result{};
+
+			__asm
+			{
+				pushad
+
+				mov edx, filename
+				push thread
+				push file
+				call func
+				add esp, 0x8
+				mov result, eax
+
+				popad
+			}
+
+			return result;
+		}
+
+		int FS_FOpenFileReadForThread(const char* filename, int* file, int thread)
+		{
+			return fs_fopen_file_read_for_thread(filename, file, thread);
+		}
+
+		void FS_FileClose(int h)
+		{
+			fs_file_close(h);
+		}
+
+		std::string filesystem_read_big_file(const char* filename)
+		{
+			std::string file_buffer{};
+
+			int handle = -1;
+			FS_FOpenFileReadForThread(filename, &handle, 0);
+
+			if (handle > 0)
+			{
+				constexpr unsigned int BUFF_SIZE = 1024;
+
+				while (true)
+				{
+					char buffer[BUFF_SIZE];
+					auto size_read = FS_Read(buffer, BUFF_SIZE, handle);
+
+					file_buffer.append(buffer, size_read);
+
+					if (size_read < BUFF_SIZE)
+					{
+						// We're done!
+						break;
+					}
+				}
+
+				// shi
+				//FS_FileClose(handle);
+			}
+
+			return file_buffer;
+		}
+
 		void Linker::startup()
 		{
 			// AssetHandler::SetDump(true);
+
+			FS_Read = FS_Read_t(0x525940);
 
 			if (this->is_used())
 			{
@@ -144,12 +228,14 @@ namespace ZoneTool
 			FileSystem::SetFastFile(name);
 			AssetHandler::SetDump(true);
 			load_zone(name);
+
 			while (!is_dumping_complete)
 			{
-				if (!*reinterpret_cast<bool*>(0x1294A00))
-				{
-					AssetHandler::StopDump();
-				}
+				// TODO: find
+				//if (!*reinterpret_cast<bool*>(0x1294A00))
+				//{
+				//	AssetHandler::StopDump();
+				//}
 				Sleep(1);
 			}
 		}

@@ -3,82 +3,92 @@
 
 #define STREAMED_TO_LOADED_IW3
 
+namespace
+{
+	std::string remove_extension(const std::string& filename)
+	{
+		size_t lastdot = filename.find_last_of(".");
+		if (lastdot == std::string::npos) return filename;
+		return filename.substr(0, lastdot);
+	};
+}
+
 namespace ZoneTool
 {
 	namespace IW3
 	{
 		H1::SoundDspBus channel_to_dspbus_index[33]
 		{
-			H1::SND_DSPBUS_PHYSICS,		//SND_CHANNEL_PHYSICS,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO2,
-			H1::SND_DSPBUS_ANIMALS,		//SND_CHANNEL_AUTODOG,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BULLETIMPACT,
-			H1::SND_DSPBUS_WHIZBYS,		//SND_CHANNEL_BULLETWHIZBY,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ELEMENT,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO2D,
-			H1::SND_DSPBUS_VEHICLES,	//SND_CHANNEL_VEHICLE,
-			H1::SND_DSPBUS_VEHICLES,	//SND_CHANNEL_VEHICLELIMITED,
-			H1::SND_DSPBUS_INTERFACE,	//SND_CHANNEL_MENU,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BODY,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BODY2D,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_RELOAD,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_RELOAD2D,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ITEM,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_EFFECTS1,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_EFFECTS2,
-			H1::SND_DSPBUS_WEAPONS,		//SND_CHANNEL_WEAPON,
-			H1::SND_DSPBUS_WEAPONS,		//SND_CHANNEL_WEAPON2D,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_NONSHOCK,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_VOICE,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_LOCAL,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_LOCAL2,
-			H1::SND_DSPBUS_AMBIENCE,	//SND_CHANNEL_AMBIENT,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_HURT,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_PLAYER1,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_PLAYER2,
-			H1::SND_DSPBUS_MUSIC,		//SND_CHANNEL_MUSIC,
-			H1::SND_DSPBUS_MUSIC,		//SND_CHANNEL_MUSICNOPAUSE,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_MISSION,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ANNOUNCER,
-			H1::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_SHELLSHOCK,
+			H1::SoundDspBus::SND_DSPBUS_PHYSICS,		//SND_CHANNEL_PHYSICS,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO2,
+			H1::SoundDspBus::SND_DSPBUS_ANIMALS,		//SND_CHANNEL_AUTODOG,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BULLETIMPACT,
+			H1::SoundDspBus::SND_DSPBUS_WHIZBYS,		//SND_CHANNEL_BULLETWHIZBY,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ELEMENT,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_AUTO2D,
+			H1::SoundDspBus::SND_DSPBUS_VEHICLES,		//SND_CHANNEL_VEHICLE,
+			H1::SoundDspBus::SND_DSPBUS_VEHICLES,		//SND_CHANNEL_VEHICLELIMITED,
+			H1::SoundDspBus::SND_DSPBUS_INTERFACE,		//SND_CHANNEL_MENU,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BODY,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_BODY2D,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_RELOAD,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_RELOAD2D,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ITEM,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_EFFECTS1,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_EFFECTS2,
+			H1::SoundDspBus::SND_DSPBUS_WEAPONS,		//SND_CHANNEL_WEAPON,
+			H1::SoundDspBus::SND_DSPBUS_WEAPONS,		//SND_CHANNEL_WEAPON2D,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_NONSHOCK,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_VOICE,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_LOCAL,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_LOCAL2,
+			H1::SoundDspBus::SND_DSPBUS_AMBIENCE,		//SND_CHANNEL_AMBIENT,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_HURT,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_PLAYER1,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_PLAYER2,
+			H1::SoundDspBus::SND_DSPBUS_MUSIC,			//SND_CHANNEL_MUSIC,
+			H1::SoundDspBus::SND_DSPBUS_MUSIC,			//SND_CHANNEL_MUSICNOPAUSE,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_MISSION,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_ANNOUNCER,
+			H1::SoundDspBus::SND_DSPBUS_DEFAULT,		//SND_CHANNEL_SHELLSHOCK,
 		};
 
 		H1::SoundVolMod channel_to_volmod_index[33]
 		{
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PHYSICS,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTO,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTO2,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTODOG,
-			H1::SND_VOLMOD_IMPACT_CRITICAL,		//SND_CHANNEL_BULLETIMPACT,
-			H1::SND_VOLMOD_BULLET_WHIZBY,		//SND_CHANNEL_BULLETWHIZBY,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ELEMENT,
-			H1::SND_VOLMOD_FRONTEND_SFX,		//SND_CHANNEL_AUTO2D,
-			H1::SND_VOLMOD_VEHICLE_NPC,			//SND_CHANNEL_VEHICLE,
-			H1::SND_VOLMOD_VEHICLE_NPC_SPECIAL,	//SND_CHANNEL_VEHICLELIMITED,
-			H1::SND_VOLMOD_HUD,					//SND_CHANNEL_MENU,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_BODY,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_BODY2D,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_RELOAD,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_RELOAD2D,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ITEM,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_EFFECTS1,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_EFFECTS2,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_WEAPON,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_WEAPON2D,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_NONSHOCK,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_VOICE,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_LOCAL,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_LOCAL2,
-			H1::SND_VOLMOD_AMB_QUAD,			//SND_CHANNEL_AMBIENT,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_HURT,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PLAYER1,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PLAYER2,
-			H1::SND_VOLMOD_MUSIC,				//SND_CHANNEL_MUSIC,
-			H1::SND_VOLMOD_MUSIC,				//SND_CHANNEL_MUSICNOPAUSE,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_MISSION,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ANNOUNCER,
-			H1::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_SHELLSHOCK,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PHYSICS,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTO,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTO2,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_AUTODOG,
+			H1::SoundVolMod::SND_VOLMOD_IMPACT_CRITICAL,		//SND_CHANNEL_BULLETIMPACT,
+			H1::SoundVolMod::SND_VOLMOD_BULLET_WHIZBY,			//SND_CHANNEL_BULLETWHIZBY,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ELEMENT,
+			H1::SoundVolMod::SND_VOLMOD_FRONTEND_SFX,			//SND_CHANNEL_AUTO2D,
+			H1::SoundVolMod::SND_VOLMOD_VEHICLE_NPC,			//SND_CHANNEL_VEHICLE,
+			H1::SoundVolMod::SND_VOLMOD_VEHICLE_NPC_SPECIAL,	//SND_CHANNEL_VEHICLELIMITED,
+			H1::SoundVolMod::SND_VOLMOD_HUD,					//SND_CHANNEL_MENU,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_BODY,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_BODY2D,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_RELOAD,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_RELOAD2D,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ITEM,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_EFFECTS1,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_EFFECTS2,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_WEAPON,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_WEAPON2D,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_NONSHOCK,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_VOICE,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_LOCAL,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_LOCAL2,
+			H1::SoundVolMod::SND_VOLMOD_AMB_QUAD,				//SND_CHANNEL_AMBIENT,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_HURT,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PLAYER1,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_PLAYER2,
+			H1::SoundVolMod::SND_VOLMOD_MUSIC,					//SND_CHANNEL_MUSIC,
+			H1::SoundVolMod::SND_VOLMOD_MUSIC,					//SND_CHANNEL_MUSICNOPAUSE,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_MISSION,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_ANNOUNCER,
+			H1::SoundVolMod::SND_VOLMOD_DEFAULT,				//SND_CHANNEL_SHELLSHOCK,
 		};
 
 		void GenerateH1SoundAlias(snd_alias_t* alias, H1::snd_alias_t* h1_alias, ZoneMemory* mem)
@@ -98,18 +108,23 @@ namespace ZoneTool
 			switch (h1_alias->soundFile->type)
 			{
 			case H1::snd_alias_type_t::SAT_LOADED:
+			{
+				const std::string s_name = alias->soundFile->sound.loadSnd->name;
+				const std::string s_name_no_ext = remove_extension(s_name);
+
 				h1_alias->soundFile->u.loadSnd = mem->Alloc<H1::LoadedSound>();
-				h1_alias->soundFile->u.loadSnd->name = alias->soundFile->sound.loadSnd->name;
-				// no need to convert rest
+				h1_alias->soundFile->u.loadSnd->name = mem->StrDup(s_name_no_ext);
 				break;
+			}
 			case H1::snd_alias_type_t::SAT_STREAMED:
+			{
 #ifdef STREAMED_TO_LOADED_IW3
 				h1_alias->soundFile->type = H1::snd_alias_type_t::SAT_LOADED;
 				const std::string s_dir = alias->soundFile->sound.streamSnd.dir;
 				const std::string s_name = alias->soundFile->sound.streamSnd.name;
 				const auto path = std::filesystem::path(s_dir + "/" + s_name);
 
-				std::string noext_path = s_dir + "/" + path.stem().string();
+				std::string noext_path = remove_extension(path.string());
 
 				h1_alias->soundFile->u.loadSnd = mem->Alloc<H1::LoadedSound>();
 				h1_alias->soundFile->u.loadSnd->name = mem->StrDup(noext_path);
@@ -124,6 +139,7 @@ namespace ZoneTool
 				h1_alias->soundFile->u.streamSnd.totalMsec = 0;
 #endif
 				break;
+			}
 			}
 
 			h1_alias->mixerGroup = nullptr;
@@ -238,6 +254,23 @@ namespace ZoneTool
 			h1_flags.intValue = 0;
 			iw3_flags.intValue = alias->flags;
 
+			const auto get_unk1 = [&](auto type, auto channel)
+			{
+				if (std::string(alias->aliasName).find("_plr") != std::string::npos ||
+					channel == IW3::SoundChannel::SND_CHANNEL_AMBIENT ||
+					channel == IW3::SoundChannel::SND_CHANNEL_AUTO2D ||
+					channel == IW3::SoundChannel::SND_CHANNEL_BODY2D ||
+					channel == IW3::SoundChannel::SND_CHANNEL_RELOAD2D ||
+					channel == IW3::SoundChannel::SND_CHANNEL_WEAPON2D)
+				{
+					return 6u; // local
+				}
+				else
+				{
+					return 4u; // world
+				}
+			};
+
 			// h1 struct may be wrong?
 			h1_flags.packed.looping = iw3_flags.looping;
 			h1_flags.packed.isMaster = iw3_flags.isMaster;
@@ -245,7 +278,7 @@ namespace ZoneTool
 			h1_flags.packed.fullDryLevel = iw3_flags.fullDryLevel;
 			h1_flags.packed.noWetLevel = iw3_flags.noWetLevel;
 			h1_flags.packed.is3d = iw3_flags.unknown1;
-			h1_flags.packed.unk1 = 6; // ? 4 = world sound, 6 = ambient
+			h1_flags.packed.unk1 = get_unk1(h1_alias->soundFile->type, iw3_flags.channel);
 			h1_flags.packed.type = h1_alias->soundFile->type; //iw3_flags.type;
 			h1_flags.packed.unk2 = 0;
 

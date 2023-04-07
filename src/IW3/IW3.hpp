@@ -48,6 +48,7 @@ namespace bounds
 #include "Assets/Material.hpp"
 #include "Assets/RawFile.hpp"
 #include "Assets/Sound.hpp"
+#include "Assets/SoundCurve.hpp"
 #include "Assets/XAnimParts.hpp"
 #include "Assets/XModel.hpp"
 

@@ -2,6 +2,8 @@
 
 namespace ZoneTool
 {
+	extern std::unordered_map<std::string, std::string> mapped_techsets;
+
 	namespace IW5
 	{
 		class IMaterial

@@ -158,4 +158,37 @@ namespace ZoneTool
 		std::uintptr_t address_;
 		std::uintptr_t function_;
 	};
+
+	class allocator
+	{
+	public:
+		allocator() = default;
+		~allocator() = default;
+
+		allocator(const allocator&) = delete;
+		allocator(allocator&&) = delete;
+		allocator& operator=(const allocator&) = delete;
+		allocator& operator=(allocator&&) = delete;
+
+		void* alloc_internal(const size_t size = 1);
+
+		template <typename T>
+		T* allocate(const size_t count = 1)
+		{
+			return reinterpret_cast<T*>(this->alloc_internal(sizeof(T) * count));
+		}
+
+		const char* duplicate_string(const std::string& str);
+
+		template <typename T>
+		T* manual_allocate(const size_t size = sizeof(T))
+		{
+			return reinterpret_cast<T*>(this->alloc_internal(size));
+		}
+
+	private:
+		std::allocator<char> instance_;
+
+	};
+
 }

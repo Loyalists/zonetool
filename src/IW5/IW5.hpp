@@ -32,10 +32,13 @@ using ordered_json = nlohmann::ordered_json;
 #include "Assets/GfxLightDef.hpp"
 #include "Assets/GfxWorld.hpp"
 #include "Assets/GlassWorld.hpp"
+#include "Assets/LoadedSound.hpp"
 #include "Assets/MapEnts.hpp"
 #include "Assets/Material.hpp"
 #include "Assets/PhysPreset.hpp"
 #include "Assets/RawFile.hpp"
+#include "Assets/Sound.hpp"
+#include "Assets/SoundCurve.hpp"
 #include "Assets/XAnimParts.hpp"
 #include "Assets/XModel.hpp"
 #include "Assets/XSurface.hpp"
@@ -44,6 +47,11 @@ namespace ZoneTool
 {
 	namespace IW5
 	{
+		typedef int (*FS_Read_t)(void* buffer, int len, int handle);
+		extern FS_Read_t FS_Read;
+
+		extern std::string filesystem_read_big_file(const char* filename);
+
 		class Linker : public ILinker
 		{
 		private:

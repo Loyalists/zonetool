@@ -2137,7 +2137,8 @@ namespace ZoneTool
 			MaterialTechniqueSet* techset;
 			GfxImage* image;
 			snd_alias_list_t *sound;
-			// 			SndCurve *sndCurve;
+			SndCurve* sndCurve;
+			SndCurve* sndcurve;
 			clipMap_t* clipMap;
 			clipMap_t* col_map_mp;
 			ComWorld* com_map;

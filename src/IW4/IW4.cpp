@@ -7,8 +7,7 @@
 // License: GNU GPL v3.0
 // ========================================================
 #include "stdafx.hpp"
-#include <unordered_map>
-#include "ZoneTool/ZoneTool.hpp"
+#include <ZoneTool/ZoneTool.hpp>
 
 namespace ZoneTool
 {
@@ -41,7 +40,7 @@ namespace ZoneTool
 			};
 
 			static XZoneInfo zones[16];
-			memset(zones, 0, sizeof(XZoneInfo) * 16);
+			memset(zones, 0, sizeof XZoneInfo * 16);
 
 			// Load our custom zones
 			for (std::size_t i = 0; i < defaultzones.size(); i++)
@@ -173,8 +172,14 @@ namespace ZoneTool
 		
 		void Linker::DB_AddXAsset(XAssetType type, XAssetHeader header)
 		{
+			static std::shared_ptr<ZoneMemory> memory;
 			static std::vector<std::pair<XAssetType, std::string>> referencedAssets;
 			
+			if (!memory)
+			{
+				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 512);		// 512mb
+			}
+
 			// nice meme
 			if (isVerifying)
 			{
@@ -186,7 +191,7 @@ char**>(0x00799278)[type]);
 #define DECLARE_ASSET(__TYPE__, __ASSET__) \
 	if (type == __TYPE__) \
 	{ \
-		__ASSET__::dump(header.__TYPE__); \
+		__ASSET__::dump(header.__TYPE__, memory.get()); \
 	}
 
 			// fastfile name
@@ -198,7 +203,7 @@ char**>(0x00799278)[type]);
 			if (isVerifying || isDumping)
 			{
 				FileSystem::SetFastFile(fastfile);
-
+				zonetool::filesystem::set_fastfile(fastfile);
 
 				// open csv file for dumping 
 				if (!csvFile)
@@ -237,6 +242,25 @@ char**>(0x00799278)[type]);
 
 						ZONETOOL_INFO("Dumping additional asset \"%s\" because it is referenced by %s.", asset_name, currentDumpingZone.data());
 
+						if (ref.first == XAssetType::xmodel)
+						{
+							auto* xmodel = reinterpret_cast<XModel*>(ref_asset);
+							for (auto i = 0; i < xmodel->numSurfaces; i++)
+							{
+								XAsset material_asset;
+								material_asset.type = XAssetType::material;
+								material_asset.ptr.material = xmodel->materials[i];
+								DB_AddXAsset(material_asset.type, material_asset.ptr);
+							}
+							for (auto i = 0; i < xmodel->numLods; i++)
+							{
+								XAsset surface_asset;
+								surface_asset.type = XAssetType::xmodelsurfs;
+								surface_asset.ptr.xsurface = xmodel->lods[i].surfaces;
+								DB_AddXAsset(surface_asset.type, surface_asset.ptr);
+							}
+						}
+
 						XAssetHeader header;
 						header.data = ref_asset;
 						
@@ -265,8 +289,46 @@ char**>(0x00799278)[type]);
 				}
 				else
 				{
-					
+					try
+					{
+						DECLARE_ASSET(xmodelsurfs, IXSurface);
+						DECLARE_ASSET(xmodel, IXModel);
+						DECLARE_ASSET(material, IMaterial);
+						DECLARE_ASSET(xanim, IXAnimParts);
+						DECLARE_ASSET(gfx_map, IGfxWorld);
+						DECLARE_ASSET(col_map_mp, IClipMap);
+						DECLARE_ASSET(map_ents, IMapEnts);
+						DECLARE_ASSET(fx_map, IFxWorld);
+						DECLARE_ASSET(com_map, IComWorld);
+						DECLARE_ASSET(rawfile, IRawFile);
+						DECLARE_ASSET(image, IGfxImage);
+						DECLARE_ASSET(fx, IFxEffectDef);
+						DECLARE_ASSET(game_map_mp, IGameWorldMp);
+						DECLARE_ASSET(physpreset, IPhysPreset);
+						DECLARE_ASSET(sound, ISound);
+						DECLARE_ASSET(sndcurve, ISoundCurve);
+						DECLARE_ASSET(loaded_sound, ILoadedSound);
+					}
+					catch (std::exception& ex)
+					{
+						ZONETOOL_FATAL("A fatal exception occured while dumping asset \"%s\", exception was: %s\n", get_asset_name(type, header), ex.what());
+					}
 				}
+			}
+			else
+			{
+				/*std::string fastfile = static_cast<std::string>((char*)(*(DWORD*)0x112A680 + 4));
+				if (fastfile.find("mp_") != std::string::npos || fastfile == "common_mp"s)
+				{
+					FileSystem::SetFastFile("");
+
+					// dump everything techset related!
+					DECLARE_ASSET(material, IMaterial);
+					DECLARE_ASSET(techset, ITechset);
+					DECLARE_ASSET(pixelshader, IPixelShader);
+					DECLARE_ASSET(vertexshader, IVertexShader);
+					DECLARE_ASSET(vertexdecl, IVertexDecl);
+				}*/
 			}
 		}
 
@@ -436,22 +498,6 @@ char**>(0x00799278)[type]);
 			std::exit(0);
 		}
 
-		void gsc_compile_error(int unk, const char* fmt, ...)
-		{
-			char error_message[4096] = {};
-			
-			va_list va;
-			va_start(va, fmt);
-			_vsnprintf(error_message, sizeof(error_message), fmt, va);
-
-			ZONETOOL_ERROR("script compile error: %s", error_message);
-		}
-
-		void emit_opcode(int opcode, int a2, int a3)
-		{
-			ZONETOOL_INFO("compiling opcode %u", opcode);
-		}
-
 		auto should_log = false;
 		void LogFile(const std::string& log)
 		{
@@ -550,6 +596,41 @@ char**>(0x00799278)[type]);
 			}
 		}
 
+		FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);
+		FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
+		FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
+
+		std::string filesystem_read_big_file(const char* filename)
+		{
+			std::string file_buffer{};
+
+			int handle = -1;
+			FS_FOpenFileReadForThread(filename, &handle, 2);
+
+			if (handle > 0)
+			{
+				constexpr unsigned int BUFF_SIZE = 1024;
+
+				while (true)
+				{
+					char buffer[BUFF_SIZE];
+					auto size_read = FS_Read(buffer, BUFF_SIZE, handle);
+
+					file_buffer.append(buffer, size_read);
+
+					if (size_read < BUFF_SIZE)
+					{
+						// We're done!
+						break;
+					}
+				}
+
+				FS_FCloseFile(handle);
+			}
+
+			return file_buffer;
+		}
+
 		void Linker::startup()
 		{
 			if (this->is_used())
@@ -559,64 +640,10 @@ char**>(0x00799278)[type]);
 				Memory(0x458A20).jump(DB_PushStreamPosHook);
 				Memory(0x4D1D60).jump(DB_PopStreamPosHook);
 				Memory(0x418380).jump(DB_AllocStreamPosHook);
-
-				// for compiling GSC scripts
-				ZoneTool::register_command("compilescript", [](auto args)
-				{
-					//
-					if (args.size() < 2)
-					{
-						ZONETOOL_INFO("Usage: compilescript <scriptfile>\n");
-						return;
-					}
-
-					if (FileSystem::FileExists(args[1] + ".gsc"))
-					{
-						ZONETOOL_INFO("Compiling script \"%s\"...", args[1].data());
-						
-						auto fp = FileSystem::FileOpen(args[1] + ".gsc", "rb");
-						if (fp)
-						{
-							const auto file_size = FileSystem::FileSize(fp);
-							const auto bytes = FileSystem::ReadBytes(fp, file_size);
-							auto bytes_ptr = bytes.data();
-
-							// set bytes ptr
-							Memory(0x1CFEEE8).set(bytes_ptr);
-
-							// patch current thread
-							Memory(0x1CDE7FC).set(GetCurrentThreadId());
-
-							// load gsc
-							Function<void(const char*, int, int)>(0x427D00)(args[1].data(), 0, 0);
-							
-							FileSystem::FileClose(fp);
-
-							ZONETOOL_INFO("Successfully compiled script \"%s\"!", args[1].data());
-						}
-					}
-					else
-					{
-						ZONETOOL_ERROR("Cannot find script \"%s\".", args[1].data());
-					}
-				});
-
-				// dump emitted opcodes
-				Memory(0x613FD0).jump(emit_opcode);
-
-				// force compiling gsc
-				Memory(0x427DB4).set<std::uint8_t>(0xEB);
-				Memory(0x427D22).set<std::uint8_t>(0xEB);
-				
-				// 
-				Memory(0x427DED).nop(6);
 				
 				// do nothing with online sessions
 				Memory(0x441650).set<std::uint8_t>(0xC3);
 
-				// temp fix for GSC compiling
-				Memory(0x434260).jump(gsc_compile_error);
-				
 				// Realloc asset pools
 				ReallocateAssetPoolM(localize, 2);
 				ReallocateAssetPoolM(material, 2);
@@ -754,7 +781,7 @@ char**>(0x00799278)[type]);
                 Memory(0x44DA90).jump(GetZonePath);
 			}
 		}
-
+		
 		std::shared_ptr<IZone> Linker::alloc_zone(const std::string& zone)
 		{
 			ZONETOOL_ERROR("AllocZone called but IW4 is not intended to compile zones!");
@@ -805,14 +832,15 @@ char**>(0x00799278)[type]);
 			return xassettypes[type];
 		}
 
-        bool Linker::supports_building()
-        {
-            return false;
-        }
+		bool Linker::supports_building()
+		{
+			return false;
+		}
 
 		bool Linker::supports_version(const zone_target_version version)
 		{
-			return false;
+			return version == zone_target_version::iw4_release || version == zone_target_version::iw4_release_console || 
+				version == zone_target_version::iw4_alpha_482 || version == zone_target_version::iw4_alpha_491;
 		}
 
         void Linker::dump_zone(const std::string& name)
@@ -830,7 +858,7 @@ char**>(0x00799278)[type]);
 
 		void Linker::verify_zone(const std::string& name)
 		{
-			should_log = true;
+			//should_log = true;
 			isVerifying = true;
 			currentDumpingZone = name;
 			load_zone(name);

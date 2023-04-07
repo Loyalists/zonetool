@@ -85,11 +85,10 @@ namespace ZoneTool
 
 			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
 			{
-				int result;
-
-				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | 0xFFFFFC00) << 10;
-				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | result) << 10;
-				return (PackedUnitVec)(result | (int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)));
+				int x = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int y = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int z = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				return (PackedUnitVec)((z << 20) | (y << 10) | x);
 			}
 
 			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func

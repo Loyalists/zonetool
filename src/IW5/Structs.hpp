@@ -81,6 +81,12 @@ namespace ZoneTool
 			float data[N];
 		};
 
+		struct Bounds
+		{
+			vec3_t midPoint;
+			vec3_t halfSize;
+		};
+
 		// Localized Strings
 		struct LocalizeEntry
 		{
@@ -903,22 +909,32 @@ namespace ZoneTool
 			char data[1];
 		};
 
+		struct Picmip
+		{
+			char platform[2];
+		};
+
+		struct CardMemory
+		{
+			int platform[2];
+		};
+
 		struct GfxImage
 		{
 			GfxImageLoadDef* texture;
-			char mapType; // 5 is cube, 4 is 3d, 3 is 2d
-			char semantic;
-			char category;
-			char flags;
-			int cardMemory;
-			int dataLen1;
-			int dataLen2;
-			short width;
-			short height;
-			short depth;
-			bool loaded;
-			char pad;
-			char* name;
+			unsigned char mapType; // 5 is cube, 4 is 3d, 3 is 2d
+			unsigned char semantic;
+			unsigned char category;
+			unsigned char flags;
+			Picmip picmip;
+			bool noPicmip;
+			char track;
+			CardMemory cardMemory;
+			unsigned short width;
+			unsigned short height;
+			unsigned short depth;
+			unsigned char levelCount;
+			const char* name;
 		};
 
 		struct WaterWritable
@@ -1263,59 +1279,72 @@ namespace ZoneTool
 		{
 			float normal[3];
 			float dist;
-			char type;
-			char pad[3];
-		};
-
-		struct cplane_t
-		{
-			char pad[20];
+			unsigned char type;
+			unsigned char pad[3];
 		};
 
 		struct cbrushside_t
 		{
 			cplane_s* plane;
-			unsigned __int16 materialNum;
-			char firstAdjacentSideOffset;
-			char edgeCount;
+			unsigned short materialNum;
+			unsigned char firstAdjacentSideOffset;
+			unsigned char edgeCount;
+		};
+
+		struct cbrushWrapper_t
+		{
+			unsigned short numsides;
+			unsigned short glassPieceIndex;
+			cbrushside_t* sides;
+			unsigned char* baseAdjacentSide;
+			short axialMaterialNum[2][3];
+			unsigned char firstAdjacentSideOffsets[2][3];
+			unsigned char edgeCount[2][3];
 		};
 
 		struct BrushWrapper
 		{
-			float mins[3];
-			float maxs[3];
-			unsigned int numPlaneSide;
-			cbrushside_t* side;
-			char* edge;
-			__int16 axialMaterialNum[2][3];
-			__int16 firstAdjacentSideOffsets[2][3];
-			int numEdge;
-			cplane_s* plane;
+			Bounds bounds;
+			cbrushWrapper_t brush;
+			int totalEdgeCount;
+			cplane_s* planes;
 		};
 
-		//struct BrushWrapper
-		//{
-		//	char pad[24]; // 24
-		//	short numPlaneSide; // 2
-		//	short pad2; // 2
-		//	cbrushside_t* side; // 4
-		//	char* edge; // 4
-		//	char pad3[24]; // 24
-		//	int numEdge; // 4
-		//	cplane_s* plane; // 4
-		//}; // 68 bytes total
+		enum PhysicsGeomType
+		{
+			PHYS_GEOM_NONE = 0x0,
+			PHYS_GEOM_BOX = 0x1,
+			PHYS_GEOM_BRUSHMODEL = 0x2,
+			PHYS_GEOM_BRUSH = 0x3,
+			PHYS_GEOM_COLLMAP = 0x4,
+			PHYS_GEOM_CYLINDER = 0x5,
+			PHYS_GEOM_CAPSULE = 0x6,
+			PHYS_GEOM_GLASS = 0x7,
+			PHYS_GEOM_COUNT = 0x8
+		};
+
 		struct PhysGeomInfo
 		{
-			BrushWrapper* brush;
-			char pad[64];
+			BrushWrapper* brushWrapper;
+			PhysicsGeomType type;
+			float orientation[3][3];
+			Bounds bounds;
+		};
+
+		struct PhysMass
+		{
+			float centerOfMass[3];
+			float momentsOfInertia[3];
+			float productsOfInertia[3];
 		};
 
 		struct PhysCollmap
 		{
-			char* name;
-			int numInfo;
-			PhysGeomInfo* info;
-			char pad2[60];
+			const char* name;
+			unsigned int count;
+			PhysGeomInfo* geoms;
+			PhysMass mass;
+			Bounds bounds;
 		};
 
 		enum PhysPresetScaling : __int32
@@ -1371,12 +1400,6 @@ namespace ZoneTool
 			float quat[4];
 			float trans[3];
 			float transWeight;
-		};
-
-		struct Bounds
-		{
-			vec3_t midPoint;
-			vec3_t halfSize;
 		};
 
 		struct XModel
@@ -1547,6 +1570,171 @@ namespace ZoneTool
 			bool exists;
 			char _pad[2];
 			SoundData sound;
+		};
+
+		enum SoundVolMod : std::int16_t
+		{
+			SND_VOLMOD_FOLEY,
+			SND_VOLMOD_WPNAI,
+			SND_VOLMOD_WPNPLYR,
+			SND_VOLMOD_HUD,
+			SND_VOLMOD_INTERFACE,
+			SND_VOLMOD_INTERFACE_MUSIC,
+			SND_VOLMOD_MUSIC,
+			SND_VOLMOD_MUSIC_EMITTER,
+			SND_VOLMOD_AMBIENCE,
+			SND_VOLMOD_AMBIENCE_DIST,
+			SND_VOLMOD_ELEMENT,
+			SND_VOLMOD_EMITTER,
+			SND_VOLMOD_PHYSICS,
+			SND_VOLMOD_BODYFALL,
+			SND_VOLMOD_FOLEY_PLR,
+			SND_VOLMOD_FOLEYMP_PLR,
+			SND_VOLMOD_FOLEY_NPC,
+			SND_VOLMOD_FOLEYMP_NPC,
+			SND_VOLMOD_FOLEY_WPN_PLR,
+			SND_VOLMOD_FOLEY_WPN_NPC,
+			SND_VOLMOD_FOOTSTEPS_PLR,
+			SND_VOLMOD_FOOTSTEPS_NPC,
+			SND_VOLMOD_FOOTSTEPMP_PLR,
+			SND_VOLMOD_FOOTSTEPMP_NPC,
+			SND_VOLMOD_MELEE_PLR,
+			SND_VOLMOD_MELEE_NPC,
+			SND_VOLMOD_CHATTERAL,
+			SND_VOLMOD_CHATTERRAX,
+			SND_VOLMOD_REACTIONAL,
+			SND_VOLMOD_REACTIONALMAX,
+			SND_VOLMOD_VOICEOVER,
+			SND_VOLMOD_VOICEOVER_RADIO,
+			SND_VOLMOD_VOICEOVER_CRITICAL,
+			SND_VOLMOD_VOICEOVER_AMB,
+			SND_VOLMOD_DESTRUCT,
+			SND_VOLMOD_EXPLOSION,
+			SND_VOLMOD_EXPLOSION_GRENADE,
+			SND_VOLMOD_EXPLOSION_FLASHBANG,
+			SND_VOLMOD_EXPLOSION_ROCKET,
+			SND_VOLMOD_EXPLOSION_CAR,
+			SND_VOLMOD_IMPACT,
+			SND_VOLMOD_IMPACT_PLR,
+			SND_VOLMOD_IMPACT_NPC,
+			SND_VOLMOD_IMPACTMP,
+			SND_VOLMOD_IMPACTMP_PLR,
+			SND_VOLMOD_IMPACTMP_NPC,
+			SND_VOLMOD_WHIZBY,
+			SND_VOLMOD_WHIZBYMP,
+			SND_VOLMOD_VEHICLE_PLR,
+			SND_VOLMOD_VEHICLE_NPC,
+			SND_VOLMOD_VEHICLE_WPN_PLR,
+			SND_VOLMOD_VEHICLE_WPN_NPC,
+			SND_VOLMOD_VEHICLE,
+			SND_VOLMOD_GRENADEBOUNCE,
+			SND_VOLMOD_GRENADEBOUNCEMP,
+			SND_VOLMOD_SHELLCASINGS,
+			SND_VOLMOD_SHELLCASINGSMP,
+			SND_VOLMOD_WPN_PLR,
+			SND_VOLMOD_WPNMP_PLR,
+			SND_VOLMOD_WPN_NPC,
+			SND_VOLMOD_WPNMP_NPC,
+			SND_VOLMOD_WPN_PROJECTILE,
+			SND_VOLMOD_WPNMP_PROJECTILE,
+			SND_VOLMOD_NA,
+			SND_VOLMOD_MAX,
+			SND_VOLMOD_SCRIPTED1,
+			SND_VOLMOD_SCRIPTED2,
+			SND_VOLMOD_SCRIPTED3,
+			SND_VOLMOD_SCRIPTED4,
+			SND_VOLMOD_SCRIPTED5,
+			SND_VOLMOD_FULLVOLUME,
+			SND_VOLMOD_PERKMP_QUIET,
+			SND_VOLMOD_LEVEL_AC130,
+			SND_VOLMOD_DEFAULT,
+
+			SND_VOLMOD_COUNT,
+		};
+
+		enum SoundChannel : std::uint32_t
+		{
+			SND_CHANNEL_PHYSICS,
+			SND_CHANNEL_AMBDIST1,
+			SND_CHANNEL_AMBDIST2,
+			SND_CHANNEL_ALARM,
+			SND_CHANNEL_AUTO,
+			SND_CHANNEL_AUTO2,
+			SND_CHANNEL_AUTO2D,
+			SND_CHANNEL_AUTODOG,
+			SND_CHANNEL_EXPLOSIONDIST1,
+			SND_CHANNEL_EXPLOSIONDIST2,
+			SND_CHANNEL_EXPLOSIVEIMPACT,
+			SND_CHANNEL_ELEMENT,
+			SND_CHANNEL_ELEMENT_INT,
+			SND_CHANNEL_ELEMENT_EXT,
+			SND_CHANNEL_BULLETIMPACT,
+			SND_CHANNEL_BULLETFLESH1,
+			SND_CHANNEL_BULLETFLESH2,
+			SND_CHANNEL_BULLETWHIZBY,
+			SND_CHANNEL_VEHICLE,
+			SND_CHANNEL_VEHICLELIMITED,
+			SND_CHANNEL_MENU,
+			SND_CHANNEL_BODY,
+			SND_CHANNEL_BODY2D,
+			SND_CHANNEL_RELOAD,
+			SND_CHANNEL_RELOAD2D,
+			SND_CHANNEL_ITEM,
+			SND_CHANNEL_EXPLOSION1,
+			SND_CHANNEL_EXPLOSION2,
+			SND_CHANNEL_EXPLOSION3,
+			SND_CHANNEL_EXPLOSION4,
+			SND_CHANNEL_EXPLOSION5,
+			SND_CHANNEL_EFFECTS1,
+			SND_CHANNEL_EFFECTS2,
+			SND_CHANNEL_EFFECTS3,
+			SND_CHANNEL_EFFECTS2D1,
+			SND_CHANNEL_EFFECTS2D2,
+			SND_CHANNEL_NORESTRICT,
+			SND_CHANNEL_NORESTRICT2D,
+			SND_CHANNEL_AIRCRAFT,
+			SND_CHANNEL_VEHICLE2D,
+			SND_CHANNEL_WEAPON_DIST,
+			SND_CHANNEL_WEAPON_MID,
+			SND_CHANNEL_WEAPON,
+			SND_CHANNEL_WEAPON2D,
+			SND_CHANNEL_NONSHOCK,
+			SND_CHANNEL_NONSHOCK2,
+			SND_CHANNEL_GRONDO3D,
+			SND_CHANNEL_GRONDO2D,
+			SND_CHANNEL_VOICE,
+			SND_CHANNEL_LOCAL,
+			SND_CHANNEL_LOCAL2,
+			SND_CHANNEL_LOCAL3,
+			SND_CHANNEL_AMBIENT,
+			SND_CHANNEL_HURT,
+			SND_CHANNEL_PLAYER1,
+			SND_CHANNEL_PLAYER2,
+			SND_CHANNEL_MUSIC,
+			SND_CHANNEL_MUSICNOPAUSE,
+			SND_CHANNEL_MISSION,
+			SND_CHANNEL_CRITICAL,
+			SND_CHANNEL_ANNOUNCER,
+			SND_CHANNEL_SHELLSHOCK,
+
+			SND_CHANNEL_COUNT,
+		};
+
+		union SoundAliasFlags
+		{
+			struct
+			{
+				unsigned int looping : 1;
+				unsigned int isMaster : 1;
+				unsigned int isSlave : 1;
+				unsigned int fullDryLevel : 1;
+				unsigned int noWetLevel : 1;
+				unsigned int unknown1 : 1;
+				unsigned int unknown2 : 1;
+				unsigned int type : 2;
+				unsigned int channel : 7;
+			};
+			unsigned int intValue;
 		};
 
 #pragma pack(push, 4)
@@ -1755,7 +1943,7 @@ namespace ZoneTool
 			unsigned short randomDataIntCount; // 12 - 0xC
 			unsigned short framecount; // 14 - 0xE
 			char flags; // 16
-			unsigned char boneCount[10]; // 17
+			char boneCount[10]; // 17
 			char notetrackCount; // 27
 			bool bLoop; // 28
 			bool bDelta; // 29
@@ -2507,14 +2695,6 @@ namespace ZoneTool
 		{
 			float quat[4];
 			float origin[3];
-		};
-
-		struct PhysMass
-		{
-			float centerOfMass[3];
-			float momentsOfInertia[3];
-			float productsOfInertia[3];
-			// int contents;
 		};
 
 		struct DynEntityHingeDef
@@ -3349,10 +3529,10 @@ namespace ZoneTool
 		{
 			const char* name; // 4
 			const char* baseName; // 4
-			std::uint32_t planeCount; // 4
-			std::uint32_t nodeCount; // 4 // = 16
+			int planeCount; // 4
+			int nodeCount; // 4 // = 16
 			std::uint32_t surfaceCount; // 4
-			std::uint32_t skyCount; // 4
+			int skyCount; // 4
 			GfxSky* skies; // 4
 			std::uint32_t lastSunPrimaryLightIndex;
 			std::uint32_t primaryLightCount;
@@ -3366,12 +3546,11 @@ namespace ZoneTool
 			GfxCell* cells; // 4  // = 80
 			GfxWorldDraw worldDraw; // 72
 			GfxLightGrid lightGrid; // 56 // = 208
-			std::uint32_t modelCount; // 4
+			int modelCount; // 4
 			GfxBrushModel* models; // 4 // = 216
-			float mins[3]; // 12
-			float maxs[3]; // 12
+			Bounds bounds;
 			std::uint32_t checksum; // 4
-			std::uint32_t materialMemoryCount; // 4 // = 248
+			int materialMemoryCount; // 4 // = 248
 			MaterialMemory* materialMemory; // 4
 			sunflare_t sun; // 96 // = 348
 			float outdoorLookupMatrix[4][4]; // 64
@@ -3379,9 +3558,9 @@ namespace ZoneTool
 			std::uint32_t* cellCasterBits[2]; // 8
 			GfxSceneDynModel* sceneDynModel; // 4
 			GfxSceneDynBrush* sceneDynBrush; // 4 // = 432
-			unsigned char* primaryLightEntityShadowVis;
+			std::uint32_t* primaryLightEntityShadowVis;
 			std::uint32_t* primaryLightDynEntShadowVis[2];
-			char* primaryLightForModelDynEnt;
+			unsigned char* primaryLightForModelDynEnt;
 			GfxShadowGeometry* shadowGeom;
 			GfxLightRegion* lightRegion;
 			GfxWorldDpvsStatic dpvs;
@@ -3389,7 +3568,7 @@ namespace ZoneTool
 			std::uint32_t mapVtxChecksum;
 			std::uint32_t heroLightCount;
 			GfxHeroLight* heroLights;
-			char fogTypesAllowed;
+			unsigned char fogTypesAllowed;
 		};
 #pragma pack(pop)
 

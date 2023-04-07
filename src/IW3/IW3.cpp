@@ -209,6 +209,7 @@ namespace ZoneTool
 					DECLARE_ASSET(material, IMaterial);
 					DECLARE_ASSET(rawfile, IRawFile);
 					DECLARE_ASSET(sound, ISound);
+					DECLARE_ASSET(sndcurve, ISoundCurve);
 					DECLARE_ASSET(xanim, IXAnimParts);
 					DECLARE_ASSET(xmodel, IXModel);
 				}

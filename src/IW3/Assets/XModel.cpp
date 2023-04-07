@@ -272,6 +272,12 @@ namespace ZoneTool
 				// float tangent_unpacked[3]{ 0 };
 				// PackedShit::Vec3UnpackUnitVec(asset->verticies[i].tangent, tangent_unpacked);
 				h1_asset->verts0.packedVerts0[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
+
+				// correct color : bgra->rgba
+				h1_asset->verts0.packedVerts0[i].color.array[0] = asset->verts0[i].color.array[2];
+				h1_asset->verts0.packedVerts0[i].color.array[1] = asset->verts0[i].color.array[1];
+				h1_asset->verts0.packedVerts0[i].color.array[2] = asset->verts0[i].color.array[0];
+				h1_asset->verts0.packedVerts0[i].color.array[3] = asset->verts0[i].color.array[3];
 			}
 
 			// unknown

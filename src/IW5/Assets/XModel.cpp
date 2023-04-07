@@ -194,13 +194,13 @@ namespace ZoneTool
 			return h1_asset;
 		}
 
-		void IXModel::dump(XModel* asset, ZoneMemory* mem)
+		void IXModel::dump(XModel* asset, ZoneMemory* mem, const std::function<const char* (uint16_t)>& convertToString)
 		{
 			// generate h1 model
 			auto h1_asset = GenerateH1Model(asset, mem);
 
 			// dump h1 model
-			H1::IXModel::dump(h1_asset, SL_ConvertToString);
+			H1::IXModel::dump(h1_asset, convertToString);
 		}
 	}
 }

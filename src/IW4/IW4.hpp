@@ -12,12 +12,51 @@
 #include "Functions.hpp"
 #include "Structs.hpp"
 
+#include "H1/Utils/IO/filesystem.hpp"
+#include "H1/Utils/IO/assetmanager.hpp"
 #include "H1/Structs.hpp"
+
+using namespace zonetool;
+
+#include "Json.hpp"
+using json = nlohmann::json;
+using ordered_json = nlohmann::ordered_json;
+
+#include "Assets/ClipMap.hpp"
+#include "Assets/ComWorld.hpp"
+#include "Assets/FxEffectDef.hpp"
+#include "Assets/FxWorld.hpp"
+#include "Assets/GameWorldMp.hpp"
+#include "Assets/GameWorldSp.hpp"
+#include "Assets/GfxImage.hpp"
+#include "Assets/GfxLightDef.hpp"
+#include "Assets/GfxWorld.hpp"
+#include "Assets/LoadedSound.hpp"
+#include "Assets/MapEnts.hpp"
+#include "Assets/Material.hpp"
+#include "Assets/PhysPreset.hpp"
+#include "Assets/Rawfile.hpp"
+#include "Assets/Sound.hpp"
+#include "Assets/SoundCurve.hpp"
+#include "Assets/XAnimParts.hpp"
+#include "Assets/XModel.hpp"
+#include "Assets/XSurface.hpp"
 
 namespace ZoneTool
 {
 	namespace IW4
 	{
+		typedef int(*FS_FOpenFileReadForThread_t)(const char* filename, int* file, int thread);
+		extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
+
+		typedef int(*FS_FCloseFile_t)(int stream);
+		extern FS_FCloseFile_t FS_FCloseFile;
+
+		typedef int (*FS_Read_t)(void* buffer, int len, int handle);
+		extern FS_Read_t FS_Read;
+
+		extern std::string filesystem_read_big_file(const char* filename);
+
 		class Linker : public ILinker
 		{
 		public:

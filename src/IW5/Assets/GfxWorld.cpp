@@ -9,87 +9,12 @@ namespace ZoneTool
 		{
 			using namespace IW5;
 
-#define _BYTE  uint8_t
-#define _WORD  uint16_t
-#define _DWORD uint32_t
-#define _QWORD uint64_t
-
-#define LOBYTE(x)   (*((_BYTE*)&(x)))   // low byte
-#define LOWORD(x)   (*((_WORD*)&(x)))   // low word
-#define LODWORD(x)  (*((_DWORD*)&(x)))  // low dword
-#define HIBYTE(x)   (*((_BYTE*)&(x)+1))
-#define HIWORD(x)   (*((_WORD*)&(x)+1))
-#define HIDWORD(x)  (*((_DWORD*)&(x)+1))
-#define BYTEn(x, n)   (*((_BYTE*)&(x)+n))
-#define WORDn(x, n)   (*((_WORD*)&(x)+n))
-#define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
-#define BYTE2(x)   BYTEn(x,  2)
-
-			PackedTexCoords Vec2PackTexCoords(float* in) // iw5 func
-			{
-				int v2; // eax
-				int v3; // esi
-				int v4; // eax
-				int v5; // ecx
-				PackedTexCoords result; // eax
-				int v7; // [esp+8h] [ebp+8h]
-				int v8; // [esp+8h] [ebp+8h]
-
-				v7 = LODWORD(in[0]);
-				v2 = (int)((2 * v7) ^ 0x80003FFF) >> 14;
-				if (v2 < 0x3FFF)
-				{
-					if (v2 <= -16384)
-						LOWORD(v2) = -16384;
-				}
-				else
-				{
-					LOWORD(v2) = 0x3FFF;
-				}
-				v3 = (v7 >> 16) & 0xC000 | v2 & 0x3FFF;
-				v8 = LODWORD(in[1]);
-				v4 = (int)((2 * v8) ^ 0x80003FFF) >> 14;
-				v5 = (v8 >> 16) & 0xC000;
-				if (v4 < 0x3FFF)
-				{
-					if (v4 <= -16384)
-						LOWORD(v4) = -16384;
-					result.packed = v3 + ((v5 | v4 & 0x3FFF) << 16);
-				}
-				else
-				{
-					result.packed = v3 + ((v5 | 0x3FFF) << 16);
-				}
-				return result;
-			}
-
-			void Vec2UnpackTexCoords(const PackedTexCoords in, float* out) // iw5 func
-			{
-				unsigned int val;
-
-				if (LOWORD(in.packed))
-					val = ((LOWORD(in.packed) & 0x8000) << 16) | (((((in.packed & 0x3FFF) << 14) - (~(LOWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
-				else
-					val = 0;
-
-				out[0] = *reinterpret_cast<float*>(&val);
-
-				if (HIWORD(in.packed))
-					val = ((HIWORD(in.packed) & 0x8000) << 16) | (((((HIWORD(in.packed) & 0x3FFF) << 14)
-						- (~(HIWORD(in.packed) << 14) & 0x10000000)) ^ 0x80000001) >> 1);
-				else
-					val = 0;
-
-				out[1] = *reinterpret_cast<float*>(&val);
-			}
-
 			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
 			{
-				int result;
-
-				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | 0xFFFFFC00) << 10;
-				result = ((int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | result) << 10;
-				return (PackedUnitVec)(result | (int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)));
+				int x = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int y = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int z = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				return (PackedUnitVec)((z << 20) | (y << 10) | x);
 			}
 
 			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func
@@ -307,7 +232,7 @@ namespace ZoneTool
 				h1_asset->draw.vd.vertices[i].normal.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
 
 				// i don't understand why normal unpacked seems to be correct instead
-				//float tangent_unpacked[3]{ 0 };
+				float tangent_unpacked[3]{ 0 };
 				//PackedShit::Vec3UnpackUnitVec(asset->worldDraw.vd.vertices[i].tangent, tangent_unpacked);
 				h1_asset->draw.vd.vertices[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
 
@@ -330,8 +255,8 @@ namespace ZoneTool
 			h1_asset->lightGrid.hasLightRegions = asset->lightGrid.hasLightRegions;
 			h1_asset->lightGrid.useSkyForLowZ = 0;
 			h1_asset->lightGrid.lastSunPrimaryLightIndex = asset->lightGrid.sunPrimaryLightIndex;
-			memcpy(h1_asset->lightGrid.mins, asset->lightGrid.mins, sizeof(short[3]));
-			memcpy(h1_asset->lightGrid.maxs, asset->lightGrid.maxs, sizeof(short[3]));
+			memcpy(&h1_asset->lightGrid.mins, &asset->lightGrid.mins, sizeof(short[3]));
+			memcpy(&h1_asset->lightGrid.maxs, &asset->lightGrid.maxs, sizeof(short[3]));
 			h1_asset->lightGrid.rowAxis = asset->lightGrid.rowAxis;
 			h1_asset->lightGrid.colAxis = asset->lightGrid.colAxis;
 			REINTERPRET_CAST_SAFE(h1_asset->lightGrid.rowDataStart, asset->lightGrid.rowDataStart);
@@ -352,7 +277,7 @@ namespace ZoneTool
 			{
 				// colorVec3 -> colorVec6
 				
-				memcpy(&h1_asset->lightGrid.colors[i].colorVec6, &asset->lightGrid.colors[i].rgb, sizeof(asset->lightGrid.colors[i]));
+				//memcpy(&h1_asset->lightGrid.colors[i].colorVec6, &asset->lightGrid.colors[i].rgb, sizeof(asset->lightGrid.colors[i]));
 			}
 
 			//h1_asset->lightGrid.__pad0; // unknown data in pad
@@ -427,16 +352,10 @@ namespace ZoneTool
 				h1_asset->models[i].mdaoVolumeIndex = -1;
 			}
 
-			h1_asset->mins1[0] = -6400.f;
-			h1_asset->mins1[1] = -10240.f;
-			h1_asset->mins1[2] = -512.f;
-			h1_asset->maxs1[0] = 6400.f;
-			h1_asset->maxs1[1] = 10240.f;
-			h1_asset->maxs1[2] = 2048.f;
-			//memcpy(h1_asset->mins1, asset->mins, sizeof(float[3])); // then what is this?
-			//memcpy(h1_asset->maxs1, asset->maxs, sizeof(float[3])); // ^^
-			memcpy(h1_asset->mins2, asset->mins, sizeof(float[3])); //h1_asset->mins2; // ? (i think this is the correct one)
-			memcpy(h1_asset->maxs2, asset->maxs, sizeof(float[3])); //h1_asset->maxs2; // ?
+			memcpy(h1_asset->mins1, asset->bounds.midPoint, sizeof(float[3]));
+			memcpy(h1_asset->maxs1, asset->bounds.halfSize, sizeof(float[3]));
+			memcpy(h1_asset->mins2, asset->bounds.midPoint, sizeof(float[3]));
+			memcpy(h1_asset->maxs2, asset->bounds.halfSize, sizeof(float[3]));
 
 			// bounds1 = ?
 			// bounds2 = shadowBounds;
@@ -673,9 +592,9 @@ namespace ZoneTool
 				else if ((h1_asset->dpvs.smodelDrawInsts[i].flags & H1::StaticModelFlag::STATIC_MODEL_FLAG_LIGHTGRID_LIGHTING) != 0)
 				{
 					// fixme
-					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[0] = 14340; // r: 0.4
-					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[1] = 14340; // g: 0.4
-					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[2] = 14340; // b: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[0] = 14340; // r: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[1] = 14340; // g: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[2] = 14340; // b: 0.4
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[3] = 14340; // a: 0.4
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.a = 47280;
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.b = 1.0f;
@@ -713,9 +632,10 @@ namespace ZoneTool
 			}
 
 			REINTERPRET_CAST_SAFE(h1_asset->dpvs.surfaceCastsSunShadow, asset->dpvs.surfaceCastsSunShadow);
-			h1_asset->dpvs.sunShadowOptCount = 0;
-			h1_asset->dpvs.sunSurfVisDataCount = 0;
-			h1_asset->dpvs.surfaceCastsSunShadowOpt = nullptr;
+			//h1_asset->dpvs.sunShadowOptCount = 1;
+			//h1_asset->dpvs.sunSurfVisDataCount = h1_asset->dpvs.surfaceVisDataCount;
+			//h1_asset->dpvs.surfaceCastsSunShadowOpt = mem->Alloc<unsigned int>(h1_asset->dpvs.sunShadowOptCount * h1_asset->dpvs.sunSurfVisDataCount);
+			//memcpy(h1_asset->dpvs.surfaceCastsSunShadowOpt, h1_asset->dpvs.surfaceCastsSunShadow, sizeof(int) * (h1_asset->dpvs.sunShadowOptCount * h1_asset->dpvs.sunSurfVisDataCount));
 			h1_asset->dpvs.surfaceDeptAndSurf = mem->Alloc<H1::GfxDepthAndSurf>(h1_asset->dpvs.staticSurfaceCount); // todo?
 			h1_asset->dpvs.constantBuffersLit = mem->Alloc<char* __ptr64>(h1_asset->dpvs.smodelCount); //nullptr;
 			h1_asset->dpvs.constantBuffersAmbient = mem->Alloc<char* __ptr64>(h1_asset->dpvs.smodelCount); //nullptr;

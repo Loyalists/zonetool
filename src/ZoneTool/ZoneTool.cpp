@@ -13,6 +13,7 @@
 #include <IW3/IW3.hpp>
 #include <IW4/IW4.hpp>
 #include <IW5/IW5.hpp>
+#include "T6/T6.hpp"
 #include <H1/H1.hpp>
 
 #pragma comment(lib, "Dbghelp")
@@ -304,12 +305,8 @@ namespace ZoneTool
 		return std::filesystem::exists("linker.dll") && std::filesystem::is_regular_file("linker.dll");
 	}
 
-	void startup()
+	void startup_default()
 	{
-#ifdef USE_VMPROTECT
-		VMProtectBeginUltra("Startup");
-#endif
-
 		// Create stdout console
 		create_console();
 
@@ -353,9 +350,22 @@ namespace ZoneTool
 
 		// handle startup commands
 		CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(handle_params), nullptr, 0, nullptr);
+	}
 
-#ifdef USE_VMPROTECT
-		VMProtectEnd();
-#endif
+	bool is_t6()
+	{
+		return !strcmp(reinterpret_cast<char*>SELECT(0xC1A178, 0xBC8D34), "COD_T6_S MP");
+	}
+
+	void startup()
+	{
+		if (is_t6())
+		{
+			T6::init();
+		}
+		else
+		{
+			startup_default();
+		}
 	}
 }

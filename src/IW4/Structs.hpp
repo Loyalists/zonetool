@@ -248,39 +248,86 @@ namespace ZoneTool
 
 		struct GfxImageLoadDef // actually a IDirect3DTexture* but this is easier
 		{
-			unsigned char levelCount;
-			unsigned char pad[3];
-			int flags;
+			char mipLevels;
+			char flags;
+			short dimensions[3];
 			int format; // usually the compression Magic
 			int dataSize; // set to zero to load from IWD
 			char* texture; // texture
 		};
 
+		enum GfxImageCategory : unsigned char
+		{
+			IMG_CATEGORY_UNKNOWN = 0x0,
+			IMG_CATEGORY_AUTO_GENERATED = 0x1,
+			IMG_CATEGORY_LIGHTMAP = 0x2,
+			IMG_CATEGORY_LOAD_FROM_FILE = 0x3,
+			IMG_CATEGORY_RAW = 0x4,
+			IMG_CATEGORY_FIRST_UNMANAGED = 0x5,
+			IMG_CATEGORY_WATER = 0x5,
+			IMG_CATEGORY_RENDERTARGET = 0x6,
+			IMG_CATEGORY_TEMP = 0x7,
+		};
+
+		struct Picmip
+		{
+			char platform[2];
+		};
+
+		struct CardMemory
+		{
+			int platform[2];
+		};
+
+		// from iw5xport
 		struct GfxImage
 		{
 			GfxImageLoadDef* texture;
-			char mapType; // 5 is cube, 4 is 3d, 3 is 2d
-			char semantic;
-			char category;
-			char flags;
-			int cardMemory;
-			int dataLen1;
-			int dataLen2;
-			short width;
-			short height;
-			short depth;
-			bool loaded;
-			char pad;
-			char* name;
+			unsigned char mapType; // 5 is cube, 4 is 3d, 3 is 2d
+			GfxImageCategory semantic;
+			unsigned char category;
+			bool useSrgbReads; // is this flags? lmfao
+			Picmip picmip;
+			bool noPicmip;
+			char track;
+			CardMemory cardMemory;
+			unsigned short width;
+			unsigned short height;
+			unsigned short depth;
+			bool delayLoadPixels;
+			const char* name;
+		};
+
+		struct WaterWritable
+		{
+			float floatTime;
+		};
+
+		struct water_t
+		{
+			WaterWritable writable;
+			float* H0X;
+			float* H0Y;
+			float* wTerm;
+			int M;
+			int N;
+			float Lx;
+			float Lz;
+			float gravity;
+			float windvel;
+			float winddir[2];
+			float amplitude;
+			float codeConstant[4];
+			GfxImage* image;
 		};
 
 		struct MaterialImage
 		{
 			unsigned int typeHash; // asset hash of type
-			char firstCharacter; // first character of image name
-			char secondLastCharacter; // second-last character of image name (maybe only in CoD4?!)
-			char sampleState;
-			char semantic;
+			unsigned char firstCharacter; // first character of image name
+			unsigned char secondLastCharacter; // second-last character of image name (maybe only in CoD4?!)
+			unsigned char sampleState;
+			unsigned char semantic;
 			GfxImage* image; // Image* actually
 		};
 
@@ -448,11 +495,22 @@ namespace ZoneTool
 			};
 		}
 
+		enum GfxCameraRegionType : std::uint16_t
+		{
+			CAMERA_REGION_LIT_OPAQUE = 0x0,
+			CAMERA_REGION_LIT_TRANS = 0x1,
+			CAMERA_REGION_EMISSIVE = 0x2,
+			CAMERA_REGION_DEPTH_HACK = 0x3,
+			CAMERA_REGION_LIGHT_MAP_OPAQUE = 0x4,
+			CAMERA_REGION_COUNT = 0x5,
+			CAMERA_REGION_NONE = 0x5,
+		};
+
 		struct Material
 		{
 			const char* name; // 0
-			char gameFlags;
-			char sortKey;
+			unsigned char gameFlags;
+			unsigned char sortKey;
 			unsigned char animationX; // 6 // amount of animation frames in X
 			unsigned char animationY; // 7 // amount of animation frames in Y
 			unsigned int subRendererIndex; // 0x00 //+8
@@ -479,20 +537,6 @@ namespace ZoneTool
 		{
 			vec3_t midPoint;
 			vec3_t halfSize;
-
-			void compute()
-			{
-				compute(midPoint, halfSize);
-			}
-
-			void compute(vec3_t mins, vec3_t maxs)
-			{
-				for (int i = 0; i < 3; ++i)
-				{
-					this->halfSize[i] = (maxs[i] - mins[i]) / 2;
-					this->midPoint[i] = this->halfSize[i] + mins[i];
-				}
-			}
 		};
 
 		struct XBoneInfo
@@ -542,6 +586,7 @@ namespace ZoneTool
 		union PackedUnitVec
 		{
 			unsigned int packed;
+			unsigned char array[4];
 		};
 
 		struct GfxPackedVertex
@@ -594,7 +639,7 @@ namespace ZoneTool
 		struct XSurface
 		{
 			char tileMode;
-			bool deformed;
+			char deformed;
 			unsigned short vertCount;
 			unsigned short triCount;
 			unsigned char streamHandle;
@@ -607,6 +652,13 @@ namespace ZoneTool
 			int vertListCount;
 			XRigidVertList* rigidVertLists;
 			int partBits[6];
+		};
+
+		struct XModelCollTri_s
+		{
+			float plane[4];
+			float svec[4];
+			float tvec[4];
 		};
 
 		namespace alpha
@@ -658,7 +710,7 @@ namespace ZoneTool
 			{
 				const char* name;
 				XSurface* surfs;
-				unsigned __int16 numsurfs;
+				short numsurfs;
 				int partBits[5];
 			};
 #pragma pack(pop)
@@ -675,6 +727,8 @@ namespace ZoneTool
 
 			struct XModelCollSurf_s
 			{
+				XModelCollTri_s* tris;
+				int numCollTris;
 				Bounds bounds;
 				int boneIdx;
 				int contents;
@@ -705,16 +759,9 @@ namespace ZoneTool
 			char smcBucket;
 		};
 
-		struct XModelCollTri_s
-		{
-			float plane[4];
-			float svec[4];
-			float tvec[4];
-		};
-
 		struct XModelCollSurf_s
 		{
-			XModelCollTri_s* tris;
+			XModelCollTri_s* collTris;
 			int numCollTris;
 			Bounds bounds;
 			int boneIdx;
@@ -745,7 +792,7 @@ namespace ZoneTool
 			char numLods;
 			char collLod;
 			char flags;
-			XModelCollSurf_s* colSurf;
+			XModelCollSurf_s* collSurfs;
 			int numColSurfs;
 			int contents;
 			XBoneInfo* boneInfo;
@@ -1114,6 +1161,66 @@ namespace ZoneTool
 		{
 			float slavePercentage;
 			float masterPercentage;
+		};
+
+		enum SoundChannel : std::uint32_t
+		{
+			SND_CHANNEL_PHYSICS,
+			SND_CHANNEL_AMBDIST1,
+			SND_CHANNEL_AMBDIST2,
+			SND_CHANNEL_AUTO,
+			SND_CHANNEL_AUTO2,
+			SND_CHANNEL_AUTODOG,
+			SND_CHANNEL_BULLETIMPACT,
+			SND_CHANNEL_BULLETWHIZBY,
+			SND_CHANNEL_EXPLOSIVEIMPACT,
+			SND_CHANNEL_ELEMENT,
+			SND_CHANNEL_AUTO2D,
+			SND_CHANNEL_VEHICLE,
+			SND_CHANNEL_VEHICLELIMITED,
+			SND_CHANNEL_MENU,
+			SND_CHANNEL_BODY,
+			SND_CHANNEL_BODY2D,
+			SND_CHANNEL_RELOAD,
+			SND_CHANNEL_RELOAD2D,
+			SND_CHANNEL_ITEM,
+			SND_CHANNEL_EFFECTS1,
+			SND_CHANNEL_EFFECTS2,
+			SND_CHANNEL_WEAPON,
+			SND_CHANNEL_WEAPON2D,
+			SND_CHANNEL_NONSHOCK,
+			SND_CHANNEL_VOICE,
+			SND_CHANNEL_LOCAL,
+			SND_CHANNEL_LOCAL2,
+			SND_CHANNEL_LOCAL3,
+			SND_CHANNEL_AMBIENT,
+			SND_CHANNEL_HURT,
+			SND_CHANNEL_PLAYER1,
+			SND_CHANNEL_PLAYER2,
+			SND_CHANNEL_MUSIC,
+			SND_CHANNEL_MUSICNOPAUSE,
+			SND_CHANNEL_MISSION,
+			SND_CHANNEL_ANNOUNCER,
+			SND_CHANNEL_SHELLSHOCK,
+
+			SND_CHANNEL_COUNT
+		};
+
+		union SoundAliasFlags
+		{
+			struct
+			{
+				unsigned int looping : 1;
+				unsigned int isMaster : 1;
+				unsigned int isSlave : 1;
+				unsigned int fullDryLevel : 1;
+				unsigned int noWetLevel : 1;
+				unsigned int unknown1 : 1;
+				unsigned int unknown2 : 1;
+				unsigned int type : 2;
+				unsigned int channel : 7;
+			};
+			unsigned int intValue;
 		};
 		
 		struct snd_alias_t
@@ -1927,7 +2034,7 @@ namespace ZoneTool
 
 		struct FxWorld
 		{
-			char* name;
+			const char* name;
 			FxGlassSystem glassSys;
 		};
 #pragma pack(pop)
@@ -1957,7 +2064,7 @@ namespace ZoneTool
 
 		struct MapTriggers
 		{
-			int modelCount;
+			int count;
 			TriggerModel* models; // sizeof 8
 			int hullCount;
 			TriggerHull* hulls; // sizeof 32
@@ -1967,8 +2074,8 @@ namespace ZoneTool
 #pragma pack(push, 1)
 		struct Stage
 		{
-			char* stageName;
-			float offset[3];
+			char* name;
+			float origin[3];
 			unsigned __int16 triggerIndex;
 			char sunPrimaryLightIndex;
 			char pad;
@@ -1977,7 +2084,7 @@ namespace ZoneTool
 		struct MapEnts
 		{
 			const char* name; // 0
-			const char* entityString; // 4
+			char* entityString; // 4
 			int numEntityChars; // 8
 			MapTriggers trigger; // 12
 			Stage* stageNames; // 36
@@ -2030,7 +2137,6 @@ namespace ZoneTool
 			unsigned int primaryLightCount;
 			ComPrimaryLight* primaryLights;
 		};
-
 
 		union XAnimIndices
 		{
@@ -2139,8 +2245,10 @@ namespace ZoneTool
 			unsigned short randomDataIntCount; // 12 - 0xC
 			unsigned short framecount; // 14 - 0xE
 			char flags; // 16
-			unsigned char boneCount[10]; // 17
+			char boneCount[10]; // 17
 			char notifyCount; // 27
+			char pad1; // 28
+			char bDelta; // 29
 			char assetType; // 30
 			bool isDefault; // 31
 			unsigned int randomDataShortCount; // 32 - 0x20
@@ -2157,6 +2265,7 @@ namespace ZoneTool
 			XAnimIndices indices; // 76 - 0x4C
 			XAnimNotifyInfo* notify; // 80 - 0x50
 			XAnimDeltaPart* delta; // 84 - 0x54
+			// 88 - 0x58
 		};
 #pragma pack(pop)
 
@@ -2815,10 +2924,11 @@ namespace ZoneTool
 		// Fx
 		struct FxEffectDef;
 
-		/*	struct FxElemMarkVisuals
-			{
-				Material *materials[2];
-			};*/
+		struct FxElemMarkVisuals
+		{
+			Material* materials[2];
+		};
+
 		struct FxImpactEntry
 		{
 			FxEffectDef* nonflesh[31];
@@ -2839,8 +2949,6 @@ namespace ZoneTool
 			FxEffectDefRef* effectDef;
 			const char* soundName;
 		};
-
-		typedef Material* FxElemMarkVisuals[2];
 
 		union FxElemDefVisuals
 		{
@@ -2886,11 +2994,21 @@ namespace ZoneTool
 			float boostFactor;
 		};
 
+		struct FxSpotLightDef
+		{
+			float fovInnerFraction;
+			float startRadius;
+			float endRadius;
+			float brightness;
+			float maxLength;
+			int exponent;
+		};
+
 		union FxElemExtendedDefPtr
 		{
 			FxTrailDef* trailDef;
 			FxSparkFountainDef* sparkFountain;
-			char* unknownDef;
+			FxSpotLightDef* spotLightDef;
 		};
 
 		struct FxSpawnDefLooping
@@ -2966,6 +3084,42 @@ namespace ZoneTool
 			FxElemVisualState amplitude;
 		};
 
+		enum FxElemDefFlags : std::uint32_t
+		{
+			FX_ELEM_SPAWN_RELATIVE_TO_EFFECT = 0x2,
+			FX_ELEM_SPAWN_FRUSTUM_CULL = 0x4,
+			FX_ELEM_RUNNER_USES_RAND_ROT = 0x8,
+			FX_ELEM_SPAWN_OFFSET_NONE = 0x0,
+			FX_ELEM_SPAWN_OFFSET_SPHERE = 0x10,
+			FX_ELEM_SPAWN_OFFSET_CYLINDER = 0x20,
+			FX_ELEM_SPAWN_OFFSET_MASK = 0x30,
+			FX_ELEM_RUN_RELATIVE_TO_WORLD = 0x0,
+			FX_ELEM_RUN_RELATIVE_TO_SPAWN = 0x40,
+			FX_ELEM_RUN_RELATIVE_TO_EFFECT = 0x80,
+			FX_ELEM_RUN_RELATIVE_TO_OFFSET = 0xC0,
+			FX_ELEM_RUN_MASK = 0xC0,
+			FX_ELEM_USE_COLLISION = 0x100,
+			FX_ELEM_DIE_ON_TOUCH = 0x200,
+			FX_ELEM_DRAW_PAST_FOG = 0x400,
+			FX_ELEM_DRAW_WITH_VIEWMODEL = 0x800,
+			FX_ELEM_BLOCK_SIGHT = 0x1000,
+			FX_ELEM_DRAW_IN_THERMAL_VIEW_ONLY = 0x2000,
+			FX_ELEM_TRAIL_ORIENT_BY_VELOCITY = 0x4000,
+			FX_ELEM_EMIT_ORIENT_BY_ELEM = 0x8000,
+			FX_ELEM_USE_OCCLUSION_QUERY = 0x10000,
+			FX_ELEM_HAS_VELOCITY_GRAPH_LOCAL = 0x1000000,
+			FX_ELEM_HAS_VELOCITY_GRAPH_WORLD = 0x2000000,
+			FX_ELEM_HAS_GRAVITY = 0x4000000,
+			FX_ELEM_USE_MODEL_PHYSICS = 0x8000000,
+			FX_ELEM_NONUNIFORM_SCALE = 0x10000000,
+			FX_ELEM_CLOUD_SHAPE_CUBE = 0x0,
+			FX_ELEM_CLOUD_SHAPE_SPHERE_LARGE = 0x20000000,
+			FX_ELEM_CLOUD_SHAPE_SPHERE_MEDIUM = 0x40000000,
+			FX_ELEM_CLOUD_SHAPE_SPHERE_SMALL = 0x60000000,
+			FX_ELEM_CLOUD_SHAPE_MASK = 0x60000000,
+			FX_ELEM_FOUNTAIN_DISABLE_COLLISION = 0x80000000,
+		};
+
 		struct FxElemDef
 		{
 			int flags;
@@ -2985,7 +3139,7 @@ namespace ZoneTool
 			FxFloatRange gravity;
 			FxFloatRange reflectionFactor;
 			FxElemAtlas atlas;
-			char elemType;
+			FxElemType elemType;
 			char visualCount;
 			char velIntervalCount;
 			char visStateIntervalCount;
@@ -2993,9 +3147,9 @@ namespace ZoneTool
 			FxElemVisStateSample* visSamples;
 			FxElemDefVisuals visuals;
 			Bounds collBounds;
-			FxEffectDefRef* effectOnImpact;
-			FxEffectDefRef* effectOnDeath;
-			FxEffectDefRef* effectEmitted;
+			FxEffectDefRef effectOnImpact;
+			FxEffectDefRef effectOnDeath;
+			FxEffectDefRef effectEmitted;
 			FxFloatRange emitDist;
 			FxFloatRange emitDistVariance;
 			FxElemExtendedDefPtr extended;
@@ -3014,6 +3168,12 @@ namespace ZoneTool
 			int elemDefCountLooping;
 			int elemDefCountOneShot;
 			int elemDefCountEmission;
+			/* IW5
+			float occlusionQueryDepthBias;
+			int occlusionQueryFadeIn;
+			int occlusionQueryFadeOut;
+			FxFloatRange occlusionQueryScaleRange;
+			*/
 			FxElemDef* elemDefs;
 		};
 
@@ -3052,17 +3212,7 @@ namespace ZoneTool
 
 		struct GfxAabbTree
 		{
-			union
-			{
-				Bounds bounds;
-
-				struct
-				{
-					float mins[3]; // 12
-					float maxs[3]; // 12
-				};
-			};
-
+			Bounds bounds;
 			int unkn;
 			unsigned __int16 childCount; // 2
 			unsigned __int16 surfaceCount; // 2
@@ -3109,17 +3259,7 @@ namespace ZoneTool
 #pragma pack(push, 4)
 		struct GfxCell
 		{
-			union
-			{
-				Bounds bounds;
-
-				struct
-				{
-					float mins[3];
-					float maxs[3];
-				};
-			};
-
+			Bounds bounds;
 			int portalCount;
 			GfxPortal* portals;
 			char reflectionProbeCount;
@@ -3534,55 +3674,44 @@ namespace ZoneTool
 			const char* baseName; // 4
 			int planeCount; // 4
 			int nodeCount; // 4 // = 16
-			int surfaceCount; // 4
-			unsigned int skyCount; // 4
+			std::uint32_t surfaceCount; // 4
+			int skyCount; // 4
 			GfxSky* skies; // 4
-			int sunPrimaryLightIndex; // 4 // = 32
-			int primaryLightCount; // 4
-			unsigned int sortKeyLitDecal;
-			unsigned int sortKeyEffectDecal;
-			unsigned int sortKeyEffectAuto;
-			unsigned int sortKeyDistortion;
+			std::uint32_t lastSunPrimaryLightIndex;
+			std::uint32_t primaryLightCount;
+			std::uint32_t sortKeyLitDecal;
+			std::uint32_t sortKeyEffectDecal;
+			std::uint32_t sortKeyEffectAuto;
+			std::uint32_t sortKeyDistortion;
 			GfxWorldDpvsPlanes dpvsPlanes; // 16
 			GfxCellTreeCount* aabbTreeCounts; // Size: 4 * dpvsPlanes.cellCount // 4
 			GfxCellTree* aabbTree; // 4
 			GfxCell* cells; // 4  // = 80
-			GfxWorldDraw draw; // 72
+			GfxWorldDraw worldDraw; // 72
 			GfxLightGrid lightGrid; // 56 // = 208
 			int modelCount; // 4
 			GfxBrushModel* models; // 4 // = 216
-			union
-			{
-				Bounds bounds;
-
-				struct
-				{
-					float mins[3]; // 12
-					float maxs[3]; // 12
-				};
-			};
-
-			unsigned int checksum; // 4
+			Bounds bounds;
+			std::uint32_t checksum; // 4
 			int materialMemoryCount; // 4 // = 248
 			MaterialMemory* materialMemory; // 4
 			sunflare_t sun; // 96 // = 348
 			float outdoorLookupMatrix[4][4]; // 64
 			GfxImage* outdoorImage; // 4 // = 416
-			unsigned int* cellCasterBits[2]; // 8
+			std::uint32_t* cellCasterBits[2]; // 8
 			GfxSceneDynModel* sceneDynModel; // 4
 			GfxSceneDynBrush* sceneDynBrush; // 4 // = 432
-			unsigned char* primaryLightEntityShadowVis;
-			unsigned int* primaryLightDynEntShadowVis[2];
-			char* primaryLightForModelDynEnt;
+			std::uint32_t* primaryLightEntityShadowVis;
+			std::uint32_t* primaryLightDynEntShadowVis[2];
+			unsigned char* primaryLightForModelDynEnt;
 			GfxShadowGeometry* shadowGeom;
 			GfxLightRegion* lightRegion;
 			GfxWorldDpvsStatic dpvs;
 			GfxWorldDpvsDynamic dpvsDyn;
-			unsigned int mapVtxChecksum;
-			unsigned int heroLightCount;
+			std::uint32_t mapVtxChecksum;
+			std::uint32_t heroLightCount;
 			GfxHeroLight* heroLights;
-			char fogTypesAllowed;
-			char pad2[3];
+			unsigned char fogTypesAllowed;
 		};
 #pragma pack(pop)
 
@@ -3704,6 +3833,76 @@ namespace ZoneTool
 			Bounds absBounds;
 		};
 
+		enum CSurfaceFlags : std::uint32_t
+		{
+			SURF_FLAG_DEFAULT = 0x00000000,
+			SURF_FLAG_BARK = 0x00100000,
+			SURF_FLAG_BRICK = 0x00200000,
+			SURF_FLAG_CARPET = 0x00300000,
+			SURF_FLAG_CLOTH = 0x00400000,
+			SURF_FLAG_CONCRETE = 0x00500000,
+			SURF_FLAG_DIRT = 0x00600000,
+			SURF_FLAG_FLESH = 0x00700000,
+			SURF_FLAG_FOLIAGE = 0x00800000,
+			SURF_FLAG_GLASS = 0x00900000,
+			SURF_FLAG_GRASS = 0x00A00000,
+			SURF_FLAG_GRAVEL = 0x00B00000,
+			SURF_FLAG_ICE = 0x00C00000,
+			SURF_FLAG_METAL = 0x00D00000,
+			SURF_FLAG_MUD = 0x00E00000,
+			SURF_FLAG_PAPER = 0x00F00000,
+			SURF_FLAG_PLASTER = 0x01000000,
+			SURF_FLAG_ROCK = 0x01100000,
+			SURF_FLAG_SAND = 0x01200000,
+			SURF_FLAG_SNOW = 0x01300000,
+			SURF_FLAG_WATER = 0x01400000,
+			SURF_FLAG_WOOD = 0x01500000,
+			SURF_FLAG_ASPHALT = 0x01600000,
+			SURF_FLAG_CERAMIC = 0x01700000,
+			SURF_FLAG_PLASTIC = 0x01800000,
+			SURF_FLAG_RUBBER = 0x01900000,
+			SURF_FLAG_CUSHION = 0x01A00000,
+			SURF_FLAG_FRUIT = 0x01B00000,
+			SURF_FLAG_PAINTEDMETAL = 0x01C00000,
+			SURF_FLAG_RIOTSHIELD = 0x01D00000,
+			SURF_FLAG_SLUSH = 0x01E00000,
+			SURF_FLAG_OPAQUEGLASS = 0x00900000,
+			SURF_FLAG_CLIPMISSILE = 0x00000000,
+			SURF_FLAG_AI_NOSIGHT = 0x00000000,
+			SURF_FLAG_CLIPSHOT = 0x00000000,
+			SURF_FLAG_PLAYERCLIP = 0x00000000,
+			SURF_FLAG_MONSTERCLIP = 0x00000000,
+			SURF_FLAG_AICLIPALLOWDEATH = 0x00000000,
+			SURF_FLAG_VEHICLECLIP = 0x00000000,
+			SURF_FLAG_ITEMCLIP = 0x00000000,
+			SURF_FLAG_NODROP = 0x00000000,
+			SURF_FLAG_NONSOLID = 0x00004000,
+			SURF_FLAG_DETAIL = 0x00000000,
+			SURF_FLAG_STRUCTURAL = 0x00000000,
+			SURF_FLAG_PORTAL = 0x80000000,
+			SURF_FLAG_CANSHOOTCLIP = 0x00000000,
+			SURF_FLAG_ORIGIN = 0x00000000,
+			SURF_FLAG_SKY = 0x00000004,
+			SURF_FLAG_NOCASTSHADOW = 0x00040000,
+			SURF_FLAG_PHYSICSGEOM = 0x00000000,
+			SURF_FLAG_LIGHTPORTAL = 0x00000000,
+			SURF_FLAG_OUTDOORBOUNDS = 0x00000000,
+			SURF_FLAG_SLICK = 0x00000002,
+			SURF_FLAG_NOIMPACT = 0x00000010,
+			SURF_FLAG_NOMARKS = 0x00000020,
+			SURF_FLAG_NOPENETRATE = 0x00000100,
+			SURF_FLAG_LADDER = 0x00000008,
+			SURF_FLAG_NODAMAGE = 0x00000001,
+			SURF_FLAG_MANTLEON = 0x02000000,
+			SURF_FLAG_MANTLEOVER = 0x04000000,
+			SURF_FLAG_STAIRS = 0x00000200,
+			SURF_FLAG_SOFT = 0x00001000,
+			SURF_FLAG_NOSTEPS = 0x00002000,
+			SURF_FLAG_NODRAW = 0x00000080,
+			SURF_FLAG_NOLIGHTMAP = 0x00000400,
+			SURF_FLAG_NODLIGHT = 0x00020000,
+		};
+
 		struct dmaterial_t
 		{
 			char* material;
@@ -3734,7 +3933,9 @@ namespace ZoneTool
 
 		struct cLeafBrushNodeChildren_t
 		{
-			unsigned __int16 childOffset[6];
+			float dist;
+			float range;
+			unsigned __int16 childOffset[2];
 		};
 
 		union cLeafBrushNodeData_t
@@ -3776,7 +3977,7 @@ namespace ZoneTool
 
 		struct CollisionAabbTree
 		{
-			float origin[3];
+			float midPoint[3];
 			unsigned __int16 materialIndex;
 			unsigned __int16 childCount;
 			float halfSize[3];
@@ -3823,6 +4024,7 @@ namespace ZoneTool
 			unsigned __int16 flags;
 			unsigned __int16 lightingHandle;
 			int health;
+			int contents;
 		};
 
 		struct DynEntityColl
@@ -4077,6 +4279,17 @@ namespace ZoneTool
 			char* entityString;
 			int numEntityChars;
 			MapTriggers trigger;
+		};
+
+		struct GfxImageFileHeader
+		{
+			char tag[3];
+			char version;
+			unsigned int flags;
+			char format;
+			char unused;
+			__int16 dimensions[3];
+			int fileSizeForPicmip[4];
 		};
 
 		union XAssetHeader

@@ -27,7 +27,7 @@ using Json = nlohmann::json;
 #undef xor
 #undef and
 
-#define MAX_ZONE_SIZE 1024 * 1024 * 200
+#define MAX_ZONE_SIZE 1024 * 1024 * 200 * 8
 
 namespace ZoneTool
 {
@@ -92,6 +92,7 @@ namespace ZoneTool
 		iw4_release,
 		iw4_release_console,
 		iw5_release,
+		t6_release,
 		max,
 	};
 
@@ -135,63 +136,6 @@ namespace ZoneTool
 	}
 #pragma push(pop)
 }
-
-#include "IPatch.hpp"
-#include "CSV.hpp"
-#include "Zone/ZoneMemory.hpp"
-#include "Zone/ZoneBuffer.hpp"
-#include "Zone/Zone.hpp"
-#include "IAsset.hpp"
-#include "Utils/FileReader.hpp"
-#include "Utils/FileSystem.hpp"
-#include "Utils/Function.hpp"
-#include "Utils/Memory.hpp"
-#include "Utils/BinaryDumper.hpp"
-#include "Utils/Expressions.hpp"
-#include "Linker.hpp"
-
-#define REINTERPRET_CAST_SAFE(__TO__, __FROM__) \
-	static_assert(sizeof(*__FROM__) == sizeof(*__TO__)); \
-	__TO__ = reinterpret_cast<decltype(__TO__)>(__FROM__);
-
-#define MAKE_STRING(__data__) #__data__
-
-#define ASSET_SIZE(__size__) \
-	void _assert_size() \
-	{ \
-		static_assert(sizeof(*this) == __size__, __FUNCTION__": Invalid struct size.\n"); \
-	}
-
-#define ZONETOOL_INFO(__FMT__,...) \
-	printf("[ INFO ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
-
-#define ZONETOOL_ERROR(__FMT__,...) \
-	printf("[ ERROR ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
-
-#define ZONETOOL_FATAL(__FMT__,...) \
-	printf("[ FATAL ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__); \
-	MessageBoxA(nullptr, &va("Oops! An unexpected error occured. Error was: " __FMT__ "\n\nZoneTool must be restarted to resolve the error. Last error code reported by windows: 0x%08X (%u)", __VA_ARGS__, GetLastError(), GetLastError())[0], nullptr, 0); \
-	std::exit(0)
-
-#define ZONETOOL_WARNING(__FMT__,...) \
-	printf("[ WARNING ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
-
-/*
- *	Debugging purposes
- */
-
-// #define FILEPOINTERS_DEBUG
-#ifdef FILEPOINTERS_DEBUG
-#define START_LOG_STREAM \
-		auto streamStartPos = buf->get_stream_pos();
-
-#define END_LOG_STREAM \
-		streamStartPos = buf->get_stream_pos() - streamStartPos; \
-		ZONETOOL_INFO("Streamsize consumed for asset is %u", streamStartPos);
-#else
-#define START_LOG_STREAM
-#define END_LOG_STREAM
-#endif
 
 template <typename T1, typename T2>
 std::size_t Difference(const T1& t1, const T2& t2)
@@ -242,7 +186,7 @@ static std::vector<std::string> split(const std::string& rawInput, const std::ve
 			}
 		}
 
-		return {firstDelim, firstDelimIndex};
+		return { firstDelim, firstDelimIndex };
 	};
 
 	std::string input = rawInput;
@@ -267,8 +211,67 @@ static std::vector<std::string> split(const std::string& rawInput, const std::ve
 
 static std::vector<std::string> split(const std::string& str, char delimiter)
 {
-	return split(str, std::vector<char>({delimiter}));
+	return split(str, std::vector<char>({ delimiter }));
 }
+
+#include "IPatch.hpp"
+#include "CSV.hpp"
+#include "Zone/ZoneMemory.hpp"
+#include "Zone/ZoneBuffer.hpp"
+#include "Zone/Zone.hpp"
+#include "IAsset.hpp"
+#include "Utils/FileReader.hpp"
+#include "Utils/FileSystem.hpp"
+#include "Utils/Function.hpp"
+#include "Utils/Memory.hpp"
+#include "Utils/BinaryDumper.hpp"
+#include "Utils/Expressions.hpp"
+#include "Linker.hpp"
+
+#include "EntStrings.hpp"
+
+#define REINTERPRET_CAST_SAFE(__TO__, __FROM__) \
+	static_assert(sizeof(*__FROM__) == sizeof(*__TO__)); \
+	__TO__ = reinterpret_cast<decltype(__TO__)>(__FROM__);
+
+#define MAKE_STRING(__data__) #__data__
+
+#define ASSET_SIZE(__size__) \
+	void _assert_size() \
+	{ \
+		static_assert(sizeof(*this) == __size__, __FUNCTION__": Invalid struct size.\n"); \
+	}
+
+#define ZONETOOL_INFO(__FMT__,...) \
+	printf("[ INFO ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
+
+#define ZONETOOL_ERROR(__FMT__,...) \
+	printf("[ ERROR ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
+
+#define ZONETOOL_FATAL(__FMT__,...) \
+	printf("[ FATAL ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__); \
+	MessageBoxA(nullptr, &va("Oops! An unexpected error occured. Error was: " __FMT__ "\n\nZoneTool must be restarted to resolve the error. Last error code reported by windows: 0x%08X (%u)", __VA_ARGS__, GetLastError(), GetLastError())[0], nullptr, 0); \
+	std::exit(0)
+
+#define ZONETOOL_WARNING(__FMT__,...) \
+	printf("[ WARNING ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
+
+/*
+ *	Debugging purposes
+ */
+
+// #define FILEPOINTERS_DEBUG
+#ifdef FILEPOINTERS_DEBUG
+#define START_LOG_STREAM \
+		auto streamStartPos = buf->get_stream_pos();
+
+#define END_LOG_STREAM \
+		streamStartPos = buf->get_stream_pos() - streamStartPos; \
+		ZONETOOL_INFO("Streamsize consumed for asset is %u", streamStartPos);
+#else
+#define START_LOG_STREAM
+#define END_LOG_STREAM
+#endif
 
 template <typename T>
 static std::shared_ptr<T> RegisterPatch()

@@ -141,7 +141,7 @@ namespace ZoneTool
 
 			if (!memory)
 			{
-				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 512);		// 512mb
+				memory = std::make_shared<ZoneMemory>(1024 * 1024 * 128 * 8);		// 128mb
 			}
 
 			fastfile = static_cast<std::string>(reinterpret_cast<const char*>(*reinterpret_cast<DWORD*>(0x1294A00)
@@ -192,6 +192,25 @@ namespace ZoneTool
 
 						ZONETOOL_INFO("Dumping additional asset \"%s\" because it is referenced by %s.", asset_name, fastfile.data());
 
+						if (type == XAssetType::xmodel)
+						{
+							auto* xmodel = reinterpret_cast<XModel*>(ref_asset);
+							for (auto i = 0; i < xmodel->numSurfaces; i++)
+							{
+								XAsset material_asset;
+								material_asset.type = XAssetType::material;
+								material_asset.header.material = xmodel->materials[i];
+								DB_LogLoadedAsset(material_asset.header.data, material_asset.type);
+							}
+							for (auto i = 0; i < xmodel->numLods; i++)
+							{
+								XAsset surface_asset;
+								surface_asset.type = XAssetType::xmodelsurfs;
+								surface_asset.header.xsurface = xmodel->lods[i].surfaces;
+								DB_LogLoadedAsset(surface_asset.header.data, surface_asset.type);
+							}
+						}
+
 						DB_LogLoadedAsset(ref_asset, asset.first);
 					}
 
@@ -220,10 +239,13 @@ namespace ZoneTool
 						DUMPCASE(lightdef, IGfxLightDef, GfxLightDef);
 						DUMPCASE(gfx_map, IGfxWorld, GfxWorld);
 						DUMPCASE(glass_map, IGlassWorld, GlassWorld);
+						DUMPCASE(loaded_sound, ILoadedSound, LoadedSound);
 						DUMPCASE(map_ents, IMapEnts, MapEnts);
 						DUMPCASE(material, IMaterial, Material);
 						DUMPCASE(physpreset, IPhysPreset, PhysPreset);
 						DUMPCASE(rawfile, IRawFile, RawFile);
+						DUMPCASE(sound, ISound, snd_alias_list_t);
+						DUMPCASE(sndcurve, ISoundCurve, SndCurve);
 						DUMPCASE(xmodel, IXModel, XModel);
 						DUMPCASE(xmodelsurfs, IXSurface, ModelSurface);
 						DUMPCASE(xanim, IXAnimParts, XAnimParts);
@@ -439,7 +461,7 @@ namespace ZoneTool
 			}
 		}
 
-		const unsigned int textureBufferSize = 1024 * 1024 * 64; // 64mb
+		const unsigned int textureBufferSize = 1024 * 1024 * 64 * 4; // 64mb
 		unsigned int textureBufferIndex = 0;
 		std::unordered_map<std::string, unsigned int> textureMap;
 		std::string texturesFastfiles;

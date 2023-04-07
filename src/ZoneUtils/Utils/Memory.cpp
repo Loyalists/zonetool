@@ -80,4 +80,18 @@ namespace ZoneTool
 	{
 		return initialize();
 	}
+
+	void* allocator::alloc_internal(const size_t size)
+	{
+		const auto mem = this->instance_.allocate(size);
+		std::memset(mem, 0, size);
+		return mem;
+	}
+
+	const char* allocator::duplicate_string(const std::string& str)
+	{
+		const auto dupe = this->allocate<char>(str.size() + 1);
+		std::memcpy(dupe, str.data(), str.size());
+		return dupe;
+	}
 }
