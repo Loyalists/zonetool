@@ -83,23 +83,12 @@ namespace ZoneTool
 				out[1] = *reinterpret_cast<float *>(&val);
 			}
 
-			PackedUnitVec Vec3PackUnitVec(float *in) // h2 func
+			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
 			{
-				float v2;		 // xmm0_8
-				unsigned int v3; // ebx
-				float v4;		 // xmm0_8
-				int v5;			 // ebx
-				float v6;		 // xmm0_8
-
-				v2 = ((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v2 = floorf(v2);
-				v3 = ((int)v2 | 0xFFFFFC00) << 10;
-				v4 = ((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v4 = floorf(v4);
-				v5 = ((int)v4 | v3) << 10;
-				v6 = ((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f);
-				v6 = floorf(v6);
-				return (PackedUnitVec)(v5 | (int)v6);
+				int x = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int y = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				int z = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
+				return (PackedUnitVec)((z << 20) | (y << 10) | x);
 			}
 
 			void Vec3UnpackUnitVec(const PackedUnitVec in, float *out) // t6 func
@@ -647,7 +636,8 @@ namespace ZoneTool
 
 			auto blendVertsTable = new H1::BlendVertsUnknown[asset->vertCount]();
 			surf->blendVertsTable = reinterpret_cast<H1::BlendVertsUnknown *__ptr64>(blendVertsTable);
-			PrepareVertexWeights(surf);
+			//PrepareVertexWeights(surf);
+			GenerateH1BlendVertsShit(surf);
 
 			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
 		}
