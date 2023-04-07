@@ -11,10 +11,25 @@ namespace ZoneTool
 
 			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
 			{
-				int x = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				int y = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				int z = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				return (PackedUnitVec)((z << 20) | (y << 10) | x);
+				unsigned int bits;
+
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | 0xFFFFFC00) << 10;
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | bits) << 10;
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | bits);
+
+				return { bits };
+			}
+
+			PackedUnitVec Vec3PackUnitVecWithAlpha(float* in, float alpha) // h1 func
+			{
+				unsigned int bits;
+
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, alpha)) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | 0xFFFFFC00) << 10;
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | bits) << 10;
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | bits) << 10;
+				bits = ((unsigned int)floor(((((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f) + 0.5f)) | bits);
+
+				return { bits };
 			}
 
 			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func
@@ -26,6 +41,32 @@ namespace ZoneTool
 				out[1] = (in.array[1] - 127.0f) * decodeScale;
 				out[2] = (in.array[2] - 127.0f) * decodeScale;
 			}
+		}
+	}
+
+	namespace
+	{
+		typedef unsigned short ushort;
+		typedef unsigned int uint;
+
+		uint as_uint(const float x) {
+			return *(uint*)&x;
+		}
+		float as_float(const uint x) {
+			return *(float*)&x;
+		}
+
+		float half_to_float(const ushort x) { // IEEE-754 16-bit floating-point format (without infinity): 1-5-10, exp-15, +-131008.0, +-6.1035156E-5, +-5.9604645E-8, 3.311 digits
+			const uint e = (x & 0x7C00) >> 10; // exponent
+			const uint m = (x & 0x03FF) << 13; // mantissa
+			const uint v = as_uint((float)m) >> 23; // evil log2 bit hack to count leading zeros in denormalized format
+			return as_float((x & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) | ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000))); // sign : normalized : denormalized
+		}
+		ushort float_to_half(const float x) { // IEEE-754 16-bit floating-point format (without infinity): 1-5-10, exp-15, +-131008.0, +-6.1035156E-5, +-5.9604645E-8, 3.311 digits
+			const uint b = as_uint(x) + 0x00001000; // round-to-nearest-even: add last bit after truncated mantissa
+			const uint e = (b & 0x7F800000) >> 23; // exponent
+			const uint m = b & 0x007FFFFF; // mantissa; in line below: 0x007FF000 = 0x00800000-0x00001000 = decimal indicator flag - initial rounding
+			return (ushort)((b & 0x80000000) >> 16 | (e > 112) * ((((e - 112) << 10) & 0x7C00) | m >> 13) | ((e < 113) & (e > 101)) * ((((0x007FF000 + m) >> (125 - e)) + 1) >> 1) | (e > 143) * 0x7FFF); // sign : normalized : denormalized : saturate
 		}
 	}
 
@@ -227,14 +268,23 @@ namespace ZoneTool
 				memcpy(&h1_asset->draw.vd.vertices[i], &asset->worldDraw.vd.vertices[i], sizeof(IW5::GfxWorldVertex));
 
 				// re-calculate these...
-				float normal_unpacked[3]{ 0 };
+				float normal_unpacked[3]{ 0.0f, 0.0f, 0.0f };
 				PackedShit::Vec3UnpackUnitVec(asset->worldDraw.vd.vertices[i].normal, normal_unpacked);
-				h1_asset->draw.vd.vertices[i].normal.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
 
-				// i don't understand why normal unpacked seems to be correct instead
-				float tangent_unpacked[3]{ 0 };
-				//PackedShit::Vec3UnpackUnitVec(asset->worldDraw.vd.vertices[i].tangent, tangent_unpacked);
-				h1_asset->draw.vd.vertices[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
+				float tangent_unpacked[3]{ 0.0f, 0.0f, 0.0f };
+				PackedShit::Vec3UnpackUnitVec(asset->worldDraw.vd.vertices[i].tangent, tangent_unpacked);
+
+				float normal[3] = { normal_unpacked[0], normal_unpacked[1], normal_unpacked[2] };
+				float tangent[3] = { tangent_unpacked[0], tangent_unpacked[1], tangent_unpacked[2] };
+
+				float sign = 0.0f;
+				if (asset->worldDraw.vd.vertices[i].binormalSign == -1.0f)
+				{
+					sign = 1.0f;
+				}
+
+				h1_asset->draw.vd.vertices[i].normal.packed = PackedShit::Vec3PackUnitVecWithAlpha(normal, 1.0f).packed;
+				h1_asset->draw.vd.vertices[i].tangent.packed = PackedShit::Vec3PackUnitVecWithAlpha(tangent, sign).packed;
 
 				// correct color : bgra->rgba
 				h1_asset->draw.vd.vertices[i].color.array[0] = asset->worldDraw.vd.vertices[i].color.array[2];
@@ -331,7 +381,7 @@ namespace ZoneTool
 
 			for (auto i = 0; i < 3; i++)
 			{
-				h1_asset->lightGrid.tree[i].maxDepth = i;
+				h1_asset->lightGrid.tree[i].index = i;
 			}
 
 			// ----
@@ -583,19 +633,18 @@ namespace ZoneTool
 			{
 				if ((h1_asset->dpvs.smodelDrawInsts[i].flags & H1::StaticModelFlag::STATIC_MODEL_FLAG_GROUND_LIGHTING) != 0)
 				{
-					// figure out how to properly convert this
-					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[0] = 14340; // r: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[1] = 14340; // g: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[2] = 14340; // b: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[3] = 14340; // a: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[0] = 14340; // r
+					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[1] = 14340; // g
+					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[2] = 14340; // b
+					h1_asset->dpvs.smodelLighting[i].modelGroundLightingInfo.groundLighting[3] = 14340; // a
 				}
 				else if ((h1_asset->dpvs.smodelDrawInsts[i].flags & H1::StaticModelFlag::STATIC_MODEL_FLAG_LIGHTGRID_LIGHTING) != 0)
 				{
 					// fixme
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[0] = 14340; // r: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[1] = 14340; // g: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[2] = 14340; // b: 0.4
-					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[3] = 14340; // a: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[0] = 14340; // r
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[1] = 14340; // g
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[2] = 14340; // b
+					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[3] = 14340; // a
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.a = 47280;
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.b = 1.0f;
 
@@ -633,7 +682,7 @@ namespace ZoneTool
 
 			REINTERPRET_CAST_SAFE(h1_asset->dpvs.surfaceCastsSunShadow, asset->dpvs.surfaceCastsSunShadow);
 			//h1_asset->dpvs.sunShadowOptCount = 1;
-			//h1_asset->dpvs.sunSurfVisDataCount = h1_asset->dpvs.surfaceVisDataCount;
+			//h1_asset->dpvs.sunSurfVisDataCount = h1_asset->dpvs.surfaceVisDataCount * 8;
 			//h1_asset->dpvs.surfaceCastsSunShadowOpt = mem->Alloc<unsigned int>(h1_asset->dpvs.sunShadowOptCount * h1_asset->dpvs.sunSurfVisDataCount);
 			//memcpy(h1_asset->dpvs.surfaceCastsSunShadowOpt, h1_asset->dpvs.surfaceCastsSunShadow, sizeof(int) * (h1_asset->dpvs.sunShadowOptCount * h1_asset->dpvs.sunSurfVisDataCount));
 			h1_asset->dpvs.surfaceDeptAndSurf = mem->Alloc<H1::GfxDepthAndSurf>(h1_asset->dpvs.staticSurfaceCount); // todo?

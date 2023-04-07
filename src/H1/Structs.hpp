@@ -6980,6 +6980,7 @@ namespace ZoneTool
 
 		struct GfxLightGridTree
 		{
+			unsigned char index;
 			unsigned char maxDepth;
 			int nodeCount;
 			int leafCount;
@@ -7252,20 +7253,22 @@ namespace ZoneTool
 			float offset[2];
 			float scale[2];
 			unsigned int lightmapIndex;
-		};
+			char __pad0[4];
+		}; assert_sizeof(GfxStaticModelLightmapInfo, 24);
 
 		struct GfxStaticModelGroundLightingInfo
 		{
 			unsigned short groundLighting[4]; // float16
-		};
+			char __pad0[16];
+		}; assert_sizeof(GfxStaticModelGroundLightingInfo, 24);
 
 		struct GfxStaticModelLightGridLightingInfo
 		{
-			unsigned short colorFloat16[4];
-			int a;
-			float b;
-			char __pad1[8];
-		};
+			unsigned short lighting[4]; // float16
+			int colorsIndex;
+			float unk3;
+			char __pad0[8];
+		}; assert_sizeof(GfxStaticModelLightGridLightingInfo, 24);
 
 		union GfxStaticModelLighting
 		{
@@ -7273,6 +7276,7 @@ namespace ZoneTool
 			GfxStaticModelLightmapInfo modelLightmapInfo;
 			GfxStaticModelGroundLightingInfo modelGroundLightingInfo;
 			GfxStaticModelLightGridLightingInfo modelLightGridLightingInfo;
+			char pad[24];
 		}; assert_sizeof(GfxStaticModelLighting, 24);
 
 		struct GfxSubdivVertexLightingInfo

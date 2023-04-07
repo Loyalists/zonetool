@@ -330,7 +330,7 @@ namespace ZoneTool
 
 			for (auto i = 0; i < 3; i++)
 			{
-				h1_asset->lightGrid.tree[i].maxDepth = i;
+				h1_asset->lightGrid.tree[i].index = i;
 			}
 
 			// ----
@@ -606,10 +606,10 @@ namespace ZoneTool
 				else if ((h1_asset->dpvs.smodelDrawInsts[i].flags & H1::StaticModelFlag::STATIC_MODEL_FLAG_LIGHTGRID_LIGHTING) != 0)
 				{
 					// fixme
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[0] = 14340; // r: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[1] = 14340; // g: 0.4
-					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[2] = 14340; // b: 0.4
-					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.colorFloat16[3] = 14340; // a: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[0] = 14340; // r: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[1] = 14340; // g: 0.4
+					h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[2] = 14340; // b: 0.4
+					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.lighting[3] = 14340; // a: 0.4
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.a = 47280;
 					//h1_asset->dpvs.smodelLighting[i].modelLightGridLightingInfo.b = 1.0f;
 
