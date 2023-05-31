@@ -238,7 +238,7 @@ namespace ZoneTool
 
 	namespace H1
 	{
-		struct MaterialGameFlagsFields
+		struct MaterialGameFlagsFields_
 		{
 			unsigned char unk1 : 1; // 0x1
 			unsigned char addShadowToPrimaryLight : 1; // 0x2
@@ -250,9 +250,9 @@ namespace ZoneTool
 			unsigned char unkCastShadowMaybe : 1; // 0x80
 		};
 
-		union MaterialGameFlags
+		union MaterialGameFlags_
 		{
-			MaterialGameFlagsFields fields;
+			MaterialGameFlagsFields_ fields;
 			unsigned char packed;
 		};
 	}
@@ -291,7 +291,7 @@ namespace ZoneTool
 				// iw3xpo
 				MaterialGameFlags iw3_game_flags;
 				iw3_game_flags.packed = asset->gameFlags;
-				H1::MaterialGameFlags h1_game_flags;
+				H1::MaterialGameFlags_ h1_game_flags;
 				h1_game_flags.packed = iw3_game_flags.packed;
 				h1_game_flags.fields.unk7 = iw3_game_flags.fields.unkNeededForSModelDisplay;
 				h1_game_flags.fields.unkCastShadowMaybe = iw3_game_flags.fields.MTL_GAMEFLAG_CASTS_SHADOW;

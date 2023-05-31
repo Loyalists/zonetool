@@ -12,7 +12,7 @@ namespace ZoneTool
 {
 	namespace T6
 	{
-		extern std::unordered_map<T6::MaterialTechniqueType, H1::MaterialTechniqueType> mapped_techniques;
+		extern std::unordered_map<int, int> mapped_techniques;
 
 		class ITechset : public IAsset
 		{

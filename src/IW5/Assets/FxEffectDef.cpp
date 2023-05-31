@@ -152,7 +152,7 @@ namespace ZoneTool
 
 		void GenerateH1FxElemDef(H1::FxElemDef* h1_elem, FxElemDef* elem, ZoneMemory* mem)
 		{
-			h1_elem->flags = convert_elem_flags(elem->flags);
+			h1_elem->flags = static_cast<H1::FxElemDefFlags>(convert_elem_flags(elem->flags));
 			h1_elem->flags2 = 0;
 			memcpy(&h1_elem->spawn, &elem->spawn, sizeof(FxSpawnDef));
 			memcpy(&h1_elem->spawnRange, &elem->spawnRange, sizeof(FxFloatRange));

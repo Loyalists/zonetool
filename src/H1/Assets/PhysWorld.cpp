@@ -17,29 +17,29 @@ namespace ZoneTool
 			write.dump_single(asset);
 			write.dump_string(asset->name);
 
-			write.dump_array(asset->models, asset->modelsCount);
-			write.dump_array(asset->polytopeDatas, asset->polytopeDatasCount);
-			for (unsigned int i = 0; i < asset->polytopeDatasCount; i++)
+			write.dump_array(asset->brushModels, asset->brushModelCount);
+			write.dump_array(asset->polytopeDatas, asset->polytopeCount);
+			for (unsigned int i = 0; i < asset->polytopeCount; i++)
 			{
-				write.dump_array(asset->polytopeDatas[i].vec4_array0, asset->polytopeDatas[i].count0);
-				write.dump_array(asset->polytopeDatas[i].vec4_array1, asset->polytopeDatas[i].count1);
-				write.dump_array(asset->polytopeDatas[i].uint16_array0, asset->polytopeDatas[i].count1);
-				write.dump_array(asset->polytopeDatas[i].uint16_array1, asset->polytopeDatas[i].count0);
-				write.dump_array(asset->polytopeDatas[i].edges, asset->polytopeDatas[i].count2);
-				write.dump_array(asset->polytopeDatas[i].uint8_array0, asset->polytopeDatas[i].count1);
+				write.dump_array(asset->polytopeDatas[i].vec4_array0, asset->polytopeDatas[i].m_vertexCount);
+				write.dump_array(asset->polytopeDatas[i].vec4_array1, asset->polytopeDatas[i].m_faceCount);
+				write.dump_array(asset->polytopeDatas[i].uint16_array0, asset->polytopeDatas[i].m_faceCount);
+				write.dump_array(asset->polytopeDatas[i].uint16_array1, asset->polytopeDatas[i].m_vertexCount);
+				write.dump_array(asset->polytopeDatas[i].m_aSubEdges, asset->polytopeDatas[i].m_subEdgeCount);
+				write.dump_array(asset->polytopeDatas[i].m_aFaceSubEdges, asset->polytopeDatas[i].m_faceCount);
 			}
-			write.dump_array(asset->meshDatas, asset->meshDatasCount);
-			for (unsigned int i = 0; i < asset->meshDatasCount; i++)
+			write.dump_array(asset->meshDatas, asset->meshDataCount);
+			for (unsigned int i = 0; i < asset->meshDataCount; i++)
 			{
-				write.dump_array(asset->meshDatas[i].meshNodes, asset->meshDatas[i].count0);
-				write.dump_array(asset->meshDatas[i].vec4_array0, asset->meshDatas[i].count1);
-				write.dump_array(asset->meshDatas[i].meshTriangles, asset->meshDatas[i].count2);
+				write.dump_array(asset->meshDatas[i].m_pRoot, asset->meshDatas[i].m_nodeCount);
+				write.dump_array(asset->meshDatas[i].m_aVertices, asset->meshDatas[i].m_vertexCount);
+				write.dump_array(asset->meshDatas[i].m_aTriangles, asset->meshDatas[i].m_triangleCount);
 			}
-			write.dump_array(asset->waterVolumes, asset->waterVolumesCount);
-			for (unsigned int i = 0; i < asset->waterVolumesCount; i++)
+			write.dump_array(asset->waterVolumeDefs, asset->waterVolumeDefCount);
+			for (unsigned int i = 0; i < asset->waterVolumeDefCount; i++)
 			{
-				write.dump_asset(asset->waterVolumes[i].physWaterPreset);
-				write.dump_string(SL_ConvertToString(asset->waterVolumes[i].string));
+				write.dump_asset(asset->waterVolumeDefs[i].physWaterPreset);
+				write.dump_string(SL_ConvertToString(asset->waterVolumeDefs[i].string));
 			}
 
 			write.close();
