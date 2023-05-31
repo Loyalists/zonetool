@@ -336,8 +336,293 @@ namespace ZoneTool
 			return h1_asset;
 		}
 
-		std::uint64_t dm_nullBodyId = 0xFFFF0000FFFFFFFF;
-		std::uint64_t dm_nullFixtureId = 0xFFFF0000FFFFFFFF;
+		H1::PhysWorld* generate_physics_world(H1::clipMap_t* col_map, allocator& allocator)
+		{
+			// TODO: 
+			// - remove duplicate vertexes and (triangles?)
+			// - fix brush triangle vertex indexes
+			// - optimize node generation?
+			// - add partition code
+			//
+
+			const auto mem = &allocator;
+
+			auto* phys_col_map = mem->allocate<H1::PhysWorld>();
+
+			phys_col_map->name = mem->duplicate_string(col_map->name);
+
+			phys_col_map->brushModelCount = col_map->numSubModels;
+			phys_col_map->brushModels = mem->allocate<H1::PhysBrushModel>(phys_col_map->brushModelCount);
+			memset(phys_col_map->brushModels, 0, sizeof(H1::PhysBrushModel) * phys_col_map->brushModelCount);
+
+			for (auto i = 0u; i < phys_col_map->brushModelCount; i++)
+			{
+				auto* model = &phys_col_map->brushModels[i];
+				model->fields.polytopeIndex = -1;
+				model->fields.unk = -1;
+				model->fields.worldIndex = 0;
+				model->fields.meshIndex = 0;
+			}
+
+			phys_col_map->meshDataCount = 1;
+			phys_col_map->meshDatas = mem->allocate<H1::dmMeshData>(1);
+			memset(phys_col_map->meshDatas, 0, sizeof(H1::dmMeshData) * 1);
+
+			auto* mesh = &phys_col_map->meshDatas[0];
+
+			std::vector<H1::dmFloat4> phys_verticies;
+			std::vector<H1::dmMeshTriangle> phys_triangles;
+
+			int vert_index = 0;
+			int tri_index = 0;
+
+			int base_index = 0;
+
+			for (auto brush_index = 0u; brush_index < col_map->info.bCollisionData.numBrushes; brush_index++)
+			{
+				auto* brush = &col_map->info.bCollisionData.brushes[brush_index];
+				auto brush_bounds = col_map->info.bCollisionData.brushBounds[brush_index];
+				auto brush_contents = col_map->info.bCollisionData.brushContents[brush_index];
+
+				if ((brush_contents & 1) == 0)
+				{
+					continue;
+				}
+
+				float* center = brush_bounds.midPoint;
+				float* halfSize = brush_bounds.halfSize;
+
+				// Create the eight vertices of the box
+				vec3_t v1{}, v2{}, v3{}, v4{}, v5{}, v6{}, v7{}, v8{};
+
+				v1[0] = center[0] - halfSize[0];
+				v1[1] = center[1] - halfSize[1];
+				v1[2] = center[2] - halfSize[2];
+
+				v2[0] = center[0] + halfSize[0];
+				v2[1] = center[1] - halfSize[1];
+				v2[2] = center[2] - halfSize[2];
+
+				v3[0] = center[0] - halfSize[0];
+				v3[1] = center[1] + halfSize[1];
+				v3[2] = center[2] - halfSize[2];
+
+				v4[0] = center[0] + halfSize[0];
+				v4[1] = center[1] + halfSize[1];
+				v4[2] = center[2] - halfSize[2];
+
+				v5[0] = center[0] - halfSize[0];
+				v5[1] = center[1] - halfSize[1];
+				v5[2] = center[2] + halfSize[2];
+
+				v6[0] = center[0] + halfSize[0];
+				v6[1] = center[1] - halfSize[1];
+				v6[2] = center[2] + halfSize[2];
+
+				v7[0] = center[0] - halfSize[0];
+				v7[1] = center[1] + halfSize[1];
+				v7[2] = center[2] + halfSize[2];
+
+				v8[0] = center[0] + halfSize[0];
+				v8[1] = center[1] + halfSize[1];
+				v8[2] = center[2] + halfSize[2];
+
+				// Create the 12 triangles of the box by specifying the indices of their vertices
+				std::vector<std::vector<int>> triangles =
+				{
+					// bottom
+					{0, 1, 2}, // 0
+					{1, 3, 5}, // 1
+					{3, 2, 1}, // 2
+					{2, 0, 4}, // 3
+					// top
+					{4, 5, 6}, // 4
+					{5, 7, 3}, // 5
+					{7, 6, 5}, // 6
+					{6, 4, 2}, // 7
+					// verticals
+					{0, 4, 1}, // 8
+					{1, 5, 4}, // 9
+					{2, 6, 3}, // 10
+					{3, 7, 6}, // 11
+				};
+
+				// Create a vector to hold all the vertices
+				std::vector<H1::vec_t*> vertices = { v1, v2, v3, v4, v5, v6, v7, v8 };
+
+				base_index = static_cast<int>(phys_verticies.size());
+				for (size_t i = 0; i < vertices.size(); i++)
+				{
+					H1::dmFloat4 vert = { vertices[i][0], vertices[i][1], vertices[i][2], 0.0f };
+					phys_verticies.push_back(vert);
+					++vert_index;
+				}
+
+				for (size_t i = 0; i < triangles.size(); i++)
+				{
+					H1::dmMeshTriangle tri{};
+					tri.i1 = base_index + triangles[i][0];
+					tri.i2 = base_index + triangles[i][1];
+					tri.i3 = base_index + triangles[i][2];
+					tri.w1 = -1;
+					tri.w2 = -1;
+					tri.w3 = -1;
+					tri.materialIndex = 0;
+					tri.collisionFlags = 1;
+					phys_triangles.push_back(tri);
+					++tri_index;
+				}
+			}
+
+			mesh->m_vertexCount = static_cast<int>(phys_verticies.size());
+			mesh->m_triangleCount = static_cast<int>(phys_triangles.size());
+
+			mesh->m_aVertices = mem->allocate<H1::dmFloat4>(mesh->m_vertexCount);
+			memset(mesh->m_aVertices, 0, sizeof(H1::dmFloat4) * mesh->m_vertexCount);
+			mesh->m_aTriangles = mem->allocate<H1::dmMeshTriangle>(mesh->m_triangleCount);
+			memset(mesh->m_aTriangles, 0, sizeof(H1::dmMeshTriangle) * mesh->m_triangleCount);
+
+			memcpy(mesh->m_aVertices, phys_verticies.data(), sizeof(H1::dmFloat4) * mesh->m_vertexCount);
+			memcpy(mesh->m_aTriangles, phys_triangles.data(), sizeof(H1::dmMeshTriangle) * mesh->m_triangleCount);
+
+			float unquan[3]{ 1.0f, 1.0f, 1.0f };
+			{
+				float max_f = std::numeric_limits<std::int16_t>().max();
+				float min_f = std::numeric_limits<std::int16_t>().min();
+
+				float maxs[3] = { min_f, min_f, min_f };
+				float mins[3] = { max_f, max_f, max_f };
+				for (auto v = 0; v < mesh->m_vertexCount; v++)
+				{
+					auto* vertex = &mesh->m_aVertices[v];
+					maxs[0] = std::max(maxs[0], static_cast<float>(vertex->x));
+					maxs[1] = std::max(maxs[1], static_cast<float>(vertex->y));
+					maxs[2] = std::max(maxs[2], static_cast<float>(vertex->z));
+					mins[0] = std::min(mins[0], static_cast<float>(vertex->x));
+					mins[1] = std::min(mins[1], static_cast<float>(vertex->y));
+					mins[2] = std::min(mins[2], static_cast<float>(vertex->z));
+				}
+
+				for (auto i = 0; i < 3; i++)
+				{
+					unquan[i] = std::max(
+						maxs[i] / std::numeric_limits<std::int16_t>().max(),
+						mins[i] / std::numeric_limits<std::int16_t>().min());
+				}
+
+				mesh->m_unquantize.x = unquan[0];
+				mesh->m_unquantize.y = unquan[1];
+				mesh->m_unquantize.z = unquan[2];
+
+				mesh->m_center.x = 0;
+				mesh->m_center.y = 0;
+				mesh->m_center.z = 0;
+
+				mesh->m_extents.x = floor(maxs[0]);
+				mesh->m_extents.y = floor(maxs[1]);
+				mesh->m_extents.z = floor(maxs[2]);
+			}
+
+			mesh->m_nodeCount = (mesh->m_triangleCount * 2) - 1;
+			mesh->m_pRoot = mem->allocate<H1::dmMeshNode>(mesh->m_nodeCount);
+			memset(mesh->m_pRoot, 0, sizeof(H1::dmMeshNode) * mesh->m_nodeCount);
+
+			auto node_index = 0;
+			for (auto idx = 0; idx < mesh->m_triangleCount; idx++)
+			{
+				auto* triangle = &mesh->m_aTriangles[idx];
+				auto v1 = &mesh->m_aVertices[triangle->i1];
+				auto v2 = &mesh->m_aVertices[triangle->i2];
+				auto v3 = &mesh->m_aVertices[triangle->i3];
+
+				float max_f = std::numeric_limits<std::uint16_t>().max();
+				float min_f = std::numeric_limits<std::uint16_t>().min();
+
+				float maxs[3] = { min_f, min_f, min_f };
+				float mins[3] = { max_f, max_f, max_f };
+				maxs[0] = std::max(maxs[0], static_cast<float>(v1->x));
+				maxs[1] = std::max(maxs[1], static_cast<float>(v1->y));
+				maxs[2] = std::max(maxs[2], static_cast<float>(v1->z));
+				mins[0] = std::min(mins[0], static_cast<float>(v1->x));
+				mins[1] = std::min(mins[1], static_cast<float>(v1->y));
+				mins[2] = std::min(mins[2], static_cast<float>(v1->z));
+
+				maxs[0] = std::max(maxs[0], static_cast<float>(v2->x));
+				maxs[1] = std::max(maxs[1], static_cast<float>(v2->y));
+				maxs[2] = std::max(maxs[2], static_cast<float>(v2->z));
+				mins[0] = std::min(mins[0], static_cast<float>(v2->x));
+				mins[1] = std::min(mins[1], static_cast<float>(v2->y));
+				mins[2] = std::min(mins[2], static_cast<float>(v2->z));
+
+				maxs[0] = std::max(maxs[0], static_cast<float>(v3->x));
+				maxs[1] = std::max(maxs[1], static_cast<float>(v3->y));
+				maxs[2] = std::max(maxs[2], static_cast<float>(v3->z));
+				mins[0] = std::min(mins[0], static_cast<float>(v3->x));
+				mins[1] = std::min(mins[1], static_cast<float>(v3->y));
+				mins[2] = std::min(mins[2], static_cast<float>(v3->z));
+
+				if (idx == mesh->m_triangleCount - 1)
+				{
+					mesh->m_pRoot[node_index].lowerX = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].lowerY = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].lowerZ = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].upperX = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].upperY = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].upperZ = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].anon.fields.axis = 0;
+					mesh->m_pRoot[node_index].anon.fields.triangleCount = 1;
+					mesh->m_pRoot[node_index].anon.fields.index = idx;
+					node_index += 1;
+				}
+				else
+				{
+					mesh->m_pRoot[node_index].lowerX = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].lowerY = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].lowerZ = std::numeric_limits<std::int16_t>().min();
+					mesh->m_pRoot[node_index].upperX = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].upperY = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].upperZ = std::numeric_limits<std::int16_t>().max();
+					mesh->m_pRoot[node_index].anon.fields.axis = 0;
+					mesh->m_pRoot[node_index].anon.fields.triangleCount = 0;
+					mesh->m_pRoot[node_index].anon.fields.index = 2;
+
+					mesh->m_pRoot[node_index + 1].lowerX = static_cast<std::int16_t>(floor(mins[0] / mesh->m_unquantize.x));
+					mesh->m_pRoot[node_index + 1].lowerY = static_cast<std::int16_t>(floor(mins[1] / mesh->m_unquantize.y));
+					mesh->m_pRoot[node_index + 1].lowerZ = static_cast<std::int16_t>(floor(mins[2] / mesh->m_unquantize.z));
+					mesh->m_pRoot[node_index + 1].upperX = static_cast<std::int16_t>(floor(maxs[0] / mesh->m_unquantize.x));
+					mesh->m_pRoot[node_index + 1].upperY = static_cast<std::int16_t>(floor(maxs[1] / mesh->m_unquantize.y));
+					mesh->m_pRoot[node_index + 1].upperZ = static_cast<std::int16_t>(floor(maxs[2] / mesh->m_unquantize.z));
+					mesh->m_pRoot[node_index + 1].anon.fields.axis = 0;
+					mesh->m_pRoot[node_index + 1].anon.fields.triangleCount = 1;
+					mesh->m_pRoot[node_index + 1].anon.fields.index = idx;
+					node_index += 2;
+				}
+			}
+
+			mesh->m_height = 127;
+			mesh->contents = 1; // every collisionFlags
+
+			if (!mesh->m_triangleCount)
+			{
+				mesh->m_aTriangles = nullptr;
+			}
+			if (!mesh->m_vertexCount)
+			{
+				mesh->m_aVertices = nullptr;
+			}
+			if (!mesh->m_nodeCount)
+			{
+				mesh->m_pRoot = nullptr;
+			}
+
+			phys_col_map->waterVolumeDefCount = 0;
+			phys_col_map->waterVolumeDefs = nullptr;
+
+			phys_col_map->polytopeCount = 0;
+			phys_col_map->polytopeDatas = nullptr;
+
+			return phys_col_map;
+		}
 
 		void IClipMap::dump(clipMap_t* asset, ZoneMemory* mem)
 		{
@@ -348,28 +633,8 @@ namespace ZoneTool
 			H1::IClipMap::dump(h1_asset, SL_ConvertToString);
 
 			// dump physmap here too i guess, since it's needed.
-			auto* physmap = mem->Alloc<H1::PhysWorld>();
-			physmap->name = asset->name;
-
-			physmap->modelsCount = h1_asset->numSubModels;
-			physmap->models = mem->Alloc<H1::PhysBrushModel>(physmap->modelsCount);
-			for (unsigned int i = 0; i < physmap->modelsCount; i++)
-			{
-				physmap->models[i].fields.polytopeIndex = -1;
-				physmap->models[i].fields.unk = -1;
-				physmap->models[i].fields.worldIndex = 0;
-				physmap->models[i].fields.meshIndex = -1;
-			}
-
-			physmap->polytopeDatasCount = 0;
-			physmap->polytopeDatas = nullptr;
-
-			// todo: mesh data
-			physmap->meshDatasCount = 0;
-			physmap->meshDatas = nullptr;
-
-			physmap->waterVolumesCount = 0;
-			physmap->waterVolumes = nullptr;
+			allocator allocator;
+			auto* physmap = generate_physics_world(h1_asset, allocator);
 
 			H1::IPhysWorld::dump(physmap, SL_ConvertToString);
 		}

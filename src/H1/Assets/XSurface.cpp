@@ -4,9 +4,37 @@ namespace ZoneTool
 {
 	namespace H1
 	{
+		void dump_subdiv(XSurface* surf, assetmanager::dumper& dumper)
+		{
+			if (surf->subdiv)
+			{
+				dumper.dump_single(surf->subdiv);
+
+				auto* levels = surf->subdiv->levels;
+				auto level_count = surf->subdivLevelCount;
+
+				dumper.dump_array(levels, level_count);
+				for (unsigned char level_index = 0; level_index < level_count; level_index++)
+				{
+					auto* level = &levels[level_index];
+
+					dumper.dump_array(level->rigidVertLists, surf->rigidVertListCount);
+					dumper.dump_array(level->faceIndices, level->faceCount);
+					dumper.dump_array(level->regularPatchIndices, level->regularPatchCount);
+					dumper.dump_array(level->regularPatchFlags, level->regularPatchCount);
+					dumper.dump_array(level->facePoints, level->facePointBufferSize & 0xFFFFFFFC);
+					dumper.dump_array(level->edgePoints, level->edgePointCount);
+					dumper.dump_array(level->vertexPoints, level->vertexPointBufferSize & 0xFFFFFFFC);
+					dumper.dump_array(level->normals, level->normalBufferSize & 0xFFFFFFFC);
+					dumper.dump_array(level->transitionPoints, level->transitionPointCount);
+					dumper.dump_array(level->regularPatchCones, level->regularPatchCount);
+				}
+			}
+		}
+
 		void IXSurface::dump(XModelSurfs* asset)
 		{
-			const auto path = "xsurface\\"s + asset->name + ".xsurface_export";
+			const auto path = "xsurface\\"s + asset->name + ".xsb";
 
 			assetmanager::dumper dump;
 			if (!dump.open(path))
@@ -78,6 +106,14 @@ namespace ZoneTool
 					+ asset->surfs[i].blendVertCounts[6]
 					+ asset->surfs[i].blendVertCounts[7]));
 				dump.dump_raw(asset->surfs[i].tensionAccumTable, 32 * asset->surfs[i].vertCount);
+
+				dump_subdiv(&asset->surfs[i], dump);
+
+				dump.dump_array(asset->surfs[i].blendShapes, asset->surfs[i].blendShapesCount);
+				for (unsigned int bs_index = 0; bs_index < asset->surfs[i].blendShapesCount; bs_index++)
+				{
+					dump.dump_array(asset->surfs[i].blendShapes[bs_index].verts, asset->surfs[i].blendShapes[bs_index].vertCount);
+				}
 			}
 
 			dump.close();

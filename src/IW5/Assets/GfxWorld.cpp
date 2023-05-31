@@ -125,8 +125,8 @@ namespace ZoneTool
 			h1_asset->sortKeyTopDecal = 17;
 			h1_asset->sortKeyEffectAuto = 53; // h1_asset->sortKeyEffectAuto = asset->sortKeyEffectAuto;
 			h1_asset->sortKeyDistortion = 48; // h1_asset->sortKeyDistortion = asset->sortKeyDistortion;
-			h1_asset->sortKeyUnknown = 18;
-			h1_asset->sortKeyUnknown2 = 33;
+			h1_asset->sortKeyHair = 18;
+			h1_asset->sortKeyEffectBlend = 33;
 
 			h1_asset->dpvsPlanes.cellCount = asset->dpvsPlanes.cellCount;
 			REINTERPRET_CAST_SAFE(h1_asset->dpvsPlanes.planes, asset->dpvsPlanes.planes);
@@ -402,10 +402,10 @@ namespace ZoneTool
 				h1_asset->models[i].mdaoVolumeIndex = -1;
 			}
 
-			memcpy(h1_asset->mins1, asset->bounds.midPoint, sizeof(float[3]));
-			memcpy(h1_asset->maxs1, asset->bounds.halfSize, sizeof(float[3]));
-			memcpy(h1_asset->mins2, asset->bounds.midPoint, sizeof(float[3]));
-			memcpy(h1_asset->maxs2, asset->bounds.halfSize, sizeof(float[3]));
+			memcpy(h1_asset->shadowBounds.midPoint, asset->bounds.midPoint, sizeof(float[3]));
+			memcpy(h1_asset->shadowBounds.halfSize, asset->bounds.halfSize, sizeof(float[3]));
+			memcpy(h1_asset->unkBounds.midPoint, asset->bounds.midPoint, sizeof(float[3]));
+			memcpy(h1_asset->unkBounds.halfSize, asset->bounds.halfSize, sizeof(float[3]));
 
 			// bounds1 = ?
 			// bounds2 = shadowBounds;

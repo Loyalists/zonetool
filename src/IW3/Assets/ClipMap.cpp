@@ -458,8 +458,35 @@ namespace ZoneTool
 			return h1_asset;
 		}
 
-		std::uint64_t dm_nullBodyId = 0xFFFF0000FFFFFFFF;
-		std::uint64_t dm_nullFixtureId = 0xFFFF0000FFFFFFFF;
+		H1::PhysWorld* generate_physics_world(H1::clipMap_t* asset, ZoneMemory* mem)
+		{
+			auto* physmap = mem->Alloc<H1::PhysWorld>();
+			physmap->name = asset->name;
+
+			physmap->brushModelCount = asset->numSubModels;
+			physmap->brushModels = mem->Alloc<H1::PhysBrushModel>(physmap->brushModelCount);
+			for (unsigned int i = 0; i < physmap->brushModelCount; i++)
+			{
+				physmap->brushModels[i].fields.polytopeIndex = -1;
+				physmap->brushModels[i].fields.unk = -1;
+				physmap->brushModels[i].fields.worldIndex = 0;
+				physmap->brushModels[i].fields.meshIndex = -1;
+			}
+
+			physmap->polytopeCount = 0;
+			physmap->polytopeDatas = nullptr;
+
+			// todo: mesh data
+			physmap->meshDataCount = 0;
+			physmap->meshDatas = nullptr;
+
+			physmap->waterVolumeDefCount = 0;
+			physmap->waterVolumeDefs = nullptr;
+
+			return physmap;
+		}
+
+		
 
 		void IClipMap::dump(clipMap_t* asset, ZoneMemory* mem)
 		{
@@ -470,28 +497,7 @@ namespace ZoneTool
 			H1::IClipMap::dump(h1_asset, SL_ConvertToString);
 
 			// dump physmap here too i guess, since it's needed.
-			auto* physmap = mem->Alloc<H1::PhysWorld>();
-			physmap->name = asset->name;
-
-			physmap->modelsCount = h1_asset->numSubModels;
-			physmap->models = mem->Alloc<H1::PhysBrushModel>(physmap->modelsCount);
-			for (unsigned int i = 0; i < physmap->modelsCount; i++)
-			{
-				physmap->models[i].fields.polytopeIndex = -1;
-				physmap->models[i].fields.unk = -1;
-				physmap->models[i].fields.worldIndex = 0;
-				physmap->models[i].fields.meshIndex = -1;
-			}
-
-			physmap->polytopeDatasCount = 0;
-			physmap->polytopeDatas = nullptr;
-
-			// todo: mesh data
-			physmap->meshDatasCount = 0;
-			physmap->meshDatas = nullptr;
-
-			physmap->waterVolumesCount = 0;
-			physmap->waterVolumes = nullptr;
+			auto* physmap = generate_physics_world(h1_asset, mem);
 
 			H1::IPhysWorld::dump(physmap, SL_ConvertToString);
 		}

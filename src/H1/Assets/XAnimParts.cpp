@@ -4,9 +4,33 @@ namespace ZoneTool
 {
 	namespace H1
 	{
+		__int64 __fastcall GetTotalNumberOfBlendShapeKeys(XAnimParts* a1)
+		{
+			unsigned __int16 v1; // dx
+			__int64 result; // rax
+			unsigned __int16* v3; // rcx
+			__int64 v4; // r8
+			int v5; // edx
+
+			v1 = a1->blendShapeWeightCount;
+			result = 0i64;
+			if (v1)
+			{
+				v3 = a1->blendShapeWeightUnknown2;
+				v4 = v1;
+				do
+				{
+					v5 = *v3++;
+					result = (v5 + result);
+					--v4;
+				} while (v4);
+			}
+			return result;
+		}
+
 		void IXAnimParts::dump(XAnimParts* asset, const std::function<const char* (std::uint16_t)>& SL_ConvertToString)
 		{
-			const auto path = "xanim\\"s + asset->name + ".xanim_export";
+			const auto path = "xanim\\"s + asset->name + ".xab";
 
 			assetmanager::dumper dump;
 			if (!dump.open(path))
@@ -168,7 +192,7 @@ namespace ZoneTool
 				}
 			}
 
-			/*if (asset->secondaryName)
+			if (asset->secondaryName)
 			{
 				dump.dump_string(asset->secondaryName);
 			}
@@ -193,24 +217,24 @@ namespace ZoneTool
 
 			if (asset->blendShapeWeightUnknown3)
 			{
-				dump.dump_raw(asset->blendShapeWeightUnknown3, sizeof(*asset->blendShapeWeightUnknown3) * GetTotalNumberOfBlendShapeKeys(asset));
+				dump.dump_raw(asset->blendShapeWeightUnknown3, sizeof(*asset->blendShapeWeightUnknown3) * static_cast<int>(GetTotalNumberOfBlendShapeKeys(asset)));
 			}
 
 			if (asset->blendShapeWeightUnknown4)
 			{
 				dump.dump_raw(asset->blendShapeWeightUnknown4,
-					sizeof(*asset->blendShapeWeightUnknown4) * (GetTotalNumberOfBlendShapeKeys(asset) + 2 * asset->blendShapeWeightCount));
+					sizeof(*asset->blendShapeWeightUnknown4) * (static_cast<int>(GetTotalNumberOfBlendShapeKeys(asset)) + 2 * asset->blendShapeWeightCount));
 			}
 
 			if (asset->blendShapeWeights)
 			{
-				dump.dump_raw(asset->blendShapeWeights, sizeof(*asset->blendShapeWeights) * (asset->numframes + 1));
+				dump.dump_raw(asset->blendShapeWeights, sizeof(*asset->blendShapeWeights) * (asset->blendShapeWeightCount * (asset->numframes + 1)));
 			}
 
 			if (asset->scriptedViewmodelAnimData)
 			{
 				dump.dump_raw(asset->scriptedViewmodelAnimData, 8);
-			}*/
+			}
 
 			dump.close();
 		}

@@ -6,7 +6,7 @@ namespace ZoneTool
 	{
 		void IXModel::dump(XModel* asset, const std::function<const char* (std::uint16_t)>& SL_ConvertToString)
 		{
-			const auto path = "xmodel\\"s + asset->name + ".xmodel_export";
+			const auto path = "xmodel\\"s + asset->name + ".xmb";
 
 			assetmanager::dumper dump;
 			if (!dump.open(path))

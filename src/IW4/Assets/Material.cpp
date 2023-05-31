@@ -41,7 +41,7 @@ namespace ZoneTool
 			{14, 15},	// Decal top 1
 			{15, 16},	// Decal top 2
 			{16, 17},	// Decal top 3
-			//{17, },	// ?
+			{17, 18},	// Shadow?
 			//{18, },	// ?
 			//{19, },	// ?
 			{20, 22},	// Water Ocean?
@@ -126,7 +126,7 @@ namespace ZoneTool
 		{
 			if (matname.find("_dec") != std::string::npos)
 			{
-				return H1::CAMERA_REGION_LIT_DECAL;
+				//return H1::CAMERA_REGION_LIT_DECAL;
 			}
 
 			if (mapped_camera_regions_by_techset.find(h1_techset) != mapped_camera_regions_by_techset.end())
@@ -374,7 +374,7 @@ namespace ZoneTool
 					}
 
 					image["semantic"] = asset->maps[i].semantic == 11 ? 2 : asset->maps[i].semantic; // convert? ( should be the same )
-					image["samplerState"] = asset->maps[i].sampleState; // convert? ( should be fine )
+					image["samplerState"] = asset->maps[i].sampleState == 11 ? 19 : asset->maps[i].sampleState; // convert? ( should be fine )
 					image["lastCharacter"] = asset->maps[i].secondLastCharacter;
 					image["firstCharacter"] = asset->maps[i].firstCharacter;
 					image["typeHash"] = asset->maps[i].typeHash;
