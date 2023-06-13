@@ -585,8 +585,9 @@ namespace ZoneTool
 				}
 
 				vert.normal.packed = PackedShit::Vec3PackUnitVecWithAlpha(normal, 1.0f).packed;
-				vert.tangent.packed = PackedShit::Vec3PackUnitVecWithAlpha(tangent, sign).packed;
-				
+				//vert.tangent.packed = PackedShit::Vec3PackUnitVecWithAlpha(tangent, sign).packed;
+				vert.tangent.packed = vert.normal.packed;
+
 				// correct color : bgra->rgba
 				vert.color.array[0] = asset->verts0[i].color.array[2];
 				vert.color.array[1] = asset->verts0[i].color.array[1];
