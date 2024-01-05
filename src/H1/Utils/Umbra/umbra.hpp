@@ -381,7 +381,7 @@ public:
 
 			if ((length & 3) != 0)
 			{
-				_wassert(_CRT_WIDE("!(length & 3)"), _CRT_WIDE(__FILE__), __LINE__);
+				assert(_CRT_WIDE("!(length & 3)"), _CRT_WIDE(__FILE__), __LINE__);
 			}
 
 			if (remainingLength)
@@ -390,7 +390,7 @@ public:
 				{
 					if (remainingLength < 4)
 					{
-						_wassert(_CRT_WIDE("length >= sizeof(uint32_t)"), _CRT_WIDE(__FILE__), __LINE__);
+						assert(_CRT_WIDE("length >= sizeof(uint32_t)"), _CRT_WIDE(__FILE__), __LINE__);
 					}
 
 					unsigned int v5 = *ptr >> 8;

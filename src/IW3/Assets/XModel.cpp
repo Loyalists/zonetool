@@ -386,69 +386,35 @@ namespace ZoneTool
 			memcpy(&h1_asset->partBits, &asset->partBits, sizeof(asset->partBits));
 		}
 
-		H1::XModelSurfs *GenerateH1XModelSurfs(XModel *model, int index, ZoneMemory *mem)
+		void surf_convert_from_iw3(H1::XSurface *h1_asset, XSurface *asset, ZoneMemory *mem)
 		{
-			// allocate H1 XModelSurfs structure
-			const auto h1_asset = mem->Alloc<H1::XModelSurfs>();
-
-			h1_asset->name = mem->StrDup(va("%s_lod%d", model->name, index));
-			h1_asset->numsurfs = model->lodInfo[index].numsurfs;
-
-			if (h1_asset->numsurfs > 16)
-			{
-				h1_asset->numsurfs = 16;
-				//__debugbreak();
-			}
-
-			memcpy(&h1_asset->partBits, &model->lodInfo[index].partBits, sizeof(model->lodInfo[index].partBits));
-
-			h1_asset->surfs = mem->Alloc<H1::XSurface>(h1_asset->numsurfs);
-
-			for (unsigned short i = 0; i < h1_asset->numsurfs; i++)
-			{
-				GenerateH1XSurface(&h1_asset->surfs[i], &model->surfs[model->lodInfo[index].surfIndex + i], mem);
-
-				/// if (i != model->collLod)
-				//{
-				//	auto target = &h1_asset->surfs[i];
-				//	for (unsigned char k = 0; k < target->rigidVertListCount; k++)
-				//	{
-				//		target->rigidVertLists[k].collisionTree = nullptr; // Only collod is used
-				//	}
-				//}
-			}
-
-			return h1_asset;
-		}
-
-		void surf_convert_from_iw3(H1::XSurface *surf, XSurface *asset, ZoneMemory *mem)
-		{
-			// character assets have this set as 6 while weapons set this as 2...
-			surf->flags = 0;
-			surf->flags |= asset->deformed ? H1::SURF_FLAG_SKINNED : 0;
+			h1_asset->flags = 0;
+			h1_asset->flags |= asset->deformed ? H1::SURF_FLAG_SKINNED : 0;
 			// h1_asset->flags |= H1::SURF_FLAG_VERTCOL_NONE;
 
-			surf->vertCount = asset->vertCount;
-			surf->triCount = asset->triCount;
-			surf->rigidVertListCount = asset->vertListCount;
-			memcpy(&surf->blendVertCounts, &asset->vertInfo.vertCount, sizeof(asset->vertInfo.vertCount));
+			h1_asset->vertCount = asset->vertCount;
+			h1_asset->triCount = asset->triCount;
+			h1_asset->rigidVertListCount = asset->vertListCount;
 
-			int blendVertsDataLength = asset->vertInfo.vertCount[0] + 3 * asset->vertInfo.vertCount[1] + 5 * asset->vertInfo.vertCount[2] + 7 * asset->vertInfo.vertCount[3];
+			// triIndices
+			h1_asset->triIndices = reinterpret_cast<H1::Face * __ptr64>(asset->triIndices); // this is draw indices?
+			h1_asset->triIndices2 = mem->Alloc<H1::Face>(asset->triCount);				   // this is collision indices?
+			for (unsigned short i = 0; i < asset->triCount; i++)
+			{
+				memcpy(&h1_asset->triIndices2[i], &h1_asset->triIndices[i], sizeof(H1::Face));
+			}
 
-			int blendVertsTotal = asset->vertInfo.vertCount[0] + asset->vertInfo.vertCount[1] + asset->vertInfo.vertCount[2] + asset->vertInfo.vertCount[3];
-
-			auto packedVerts0 = new H1::GfxPackedVertex[asset->vertCount]();
-			auto unknown0 = new H1::UnknownXSurface0[asset->vertCount]();
-
+			// verts
+			// h1_asset->verts0.packedVerts0 = reinterpret_cast<IW6::GfxPackedVertex* __ptr64>(asset->verticies);
+			h1_asset->verts0.packedVerts0 = mem->Alloc<H1::GfxPackedVertex>(asset->vertCount);
 			for (unsigned short i = 0; i < asset->vertCount; i++)
 			{
-				auto& vert = packedVerts0[i];
-				memcpy(&vert, &asset->verts0[i], sizeof(IW3::GfxPackedVertex));
+				memcpy(&h1_asset->verts0.packedVerts0[i], &asset->verts0[i], sizeof(IW3::GfxPackedVertex));
 
 				float texCoord_unpacked[2]{ 0.0f, 0.0f };
 				PackedVec::Vec2UnpackTexCoords(asset->verts0[i].texCoord.packed, texCoord_unpacked);
 				std::swap(texCoord_unpacked[0], texCoord_unpacked[1]); // these are inverted...
-				vert.texCoord.packed = PackedVec::Vec2PackTexCoords(texCoord_unpacked);
+				h1_asset->verts0.packedVerts0[i].texCoord.packed = PackedVec::Vec2PackTexCoords(texCoord_unpacked);
 
 				// re-calculate these...
 				float normal_unpacked[3]{ 0.0f, 0.0f, 0.0f };
@@ -466,102 +432,85 @@ namespace ZoneTool
 					sign = 1.0f;
 				}
 
-				vert.normal.packed = PackedVec::Vec3PackUnitVecWithAlpha(normal, 1.0f);
-				//vert.tangent.packed = PackedVec::Vec3PackUnitVecWithAlpha(tangent, sign);
-				vert.tangent.packed = vert.normal.packed;
+				h1_asset->verts0.packedVerts0[i].normal.packed = PackedVec::Vec3PackUnitVecWithAlpha(normal, 1.0f);
+				//h1_asset->verts0.packedVerts0[i].tangent.packed = PackedVec::Vec3PackUnitVecWithAlpha(tangent, sign);
+				h1_asset->verts0.packedVerts0[i].tangent.packed = h1_asset->verts0.packedVerts0[i].normal.packed;
 
 				// correct color : bgra->rgba
-				vert.color.array[0] = asset->verts0[i].color.array[2];
-				vert.color.array[1] = asset->verts0[i].color.array[1];
-				vert.color.array[2] = asset->verts0[i].color.array[0];
-				vert.color.array[3] = asset->verts0[i].color.array[3];
-
-				memcpy(unknown0[i].xyz, vert.xyz, sizeof(unknown0[i].xyz));
-				unknown0[i].normal = vert.normal;
+				h1_asset->verts0.packedVerts0[i].color.array[0] = asset->verts0[i].color.array[2];
+				h1_asset->verts0.packedVerts0[i].color.array[1] = asset->verts0[i].color.array[1];
+				h1_asset->verts0.packedVerts0[i].color.array[2] = asset->verts0[i].color.array[0];
+				h1_asset->verts0.packedVerts0[i].color.array[3] = asset->verts0[i].color.array[3];
 			}
 
-			surf->unknown0 = reinterpret_cast<H1::UnknownXSurface0 *__ptr64>(unknown0);
-			surf->verts0.packedVerts0 = reinterpret_cast<H1::GfxPackedVertex *__ptr64>(packedVerts0);
-
-			// auto triIndices = new H1::Face[asset->triCount]();
-			// auto triIndices2 = new H1::Face[asset->triCount]();
-			// for (int f = 0; f < asset->triCount; f++)
-			//{
-			//	auto& face = triIndices[f];
-			//	face.v1 = asset->triIndices[f].v1;
-			//	face.v2 = asset->triIndices[f].v2;
-			//	face.v3 = asset->triIndices[f].v3;
-			// }
-			// memcpy(triIndices2, triIndices, asset->triCount * sizeof(H1::Face));
-			// surf->triIndices = reinterpret_cast<std::uint64_t>(triIndices);
-			// surf->triIndices2 = reinterpret_cast<std::uint64_t>(triIndices2);
-
-			// triIndices
-			surf->triIndices = reinterpret_cast<H1::Face *__ptr64>(asset->triIndices); // this is draw indices?
-			surf->triIndices2 = mem->Alloc<H1::Face>(asset->triCount);				   // this is collision indices?
-			for (unsigned short i = 0; i < asset->triCount; i++)
+			// unknown
+			h1_asset->unknown0 = mem->Alloc<H1::UnknownXSurface0>(asset->vertCount); // related to indices2?
+			for (unsigned short i = 0; i < asset->vertCount; i++)
 			{
-				memcpy(&surf->triIndices2[i], &surf->triIndices[i], sizeof(H1::Face));
+				h1_asset->unknown0[i].xyz[0] = h1_asset->verts0.packedVerts0[i].xyz[0];
+				h1_asset->unknown0[i].xyz[1] = h1_asset->verts0.packedVerts0[i].xyz[1];
+				h1_asset->unknown0[i].xyz[2] = h1_asset->verts0.packedVerts0[i].xyz[2];
+				h1_asset->unknown0[i].normal = h1_asset->verts0.packedVerts0[i].normal;
 			}
 
-			surf->rigidVertListCount = asset->vertListCount;
-			auto vertList = new H1::XRigidVertList[asset->vertListCount]();
-			for (int j = 0; j < asset->vertListCount; j++)
+			// rigidVertLists
+			h1_asset->rigidVertLists = mem->Alloc<H1::XRigidVertList>(asset->vertListCount);
+			for (int i = 0; i < asset->vertListCount; i++)
 			{
-				vertList[j].boneOffset = asset->vertList[j].boneOffset;
-				vertList[j].vertCount = asset->vertList[j].vertCount;
-				vertList[j].triOffset = asset->vertList[j].triOffset;
-				vertList[j].triCount = asset->vertList[j].triCount;
-				vertList[j].collisionTree = 0;
+				h1_asset->rigidVertLists[i].boneOffset = asset->vertList[i].boneOffset;
+				h1_asset->rigidVertLists[i].vertCount = asset->vertList[i].vertCount;
+				h1_asset->rigidVertLists[i].triOffset = asset->vertList[i].triOffset;
+				h1_asset->rigidVertLists[i].triCount = asset->vertList[i].triCount;
 
-				if (asset->vertList[j].collisionTree)
+				if (asset->vertList[i].collisionTree)
 				{
-					auto collisionTree = new H1::XSurfaceCollisionTree();
-					memcpy(collisionTree->trans, asset->vertList[j].collisionTree->trans, sizeof(asset->vertList[j].collisionTree->trans));
-					memcpy(collisionTree->scale, asset->vertList[j].collisionTree->scale, sizeof(asset->vertList[j].collisionTree->scale));
-					collisionTree->nodeCount = asset->vertList[j].collisionTree->nodeCount;
-					auto nodes = new H1::XSurfaceCollisionNode[collisionTree->nodeCount]();
-					for (int n = 0; n < collisionTree->nodeCount; n++)
-					{
-						memcpy(nodes[n].aabb.mins, asset->vertList[j].collisionTree->nodes[n].aabb.mins, sizeof(asset->vertList[j].collisionTree->nodes[n].aabb.mins));
-						memcpy(nodes[n].aabb.maxs, asset->vertList[j].collisionTree->nodes[n].aabb.maxs, sizeof(asset->vertList[j].collisionTree->nodes[n].aabb.maxs));
-						nodes[n].childBeginIndex = asset->vertList[j].collisionTree->nodes[n].childBeginIndex;
-						nodes[n].childCount = asset->vertList[j].collisionTree->nodes[n].childCount;
-					}
-					collisionTree->nodes = reinterpret_cast<H1::XSurfaceCollisionNode *__ptr64>(nodes);
+					h1_asset->rigidVertLists[i].collisionTree = mem->Alloc<H1::XSurfaceCollisionTree>();
+					memcpy(&h1_asset->rigidVertLists[i].collisionTree->trans, &asset->vertList[i].collisionTree->trans,
+						sizeof(asset->vertList[i].collisionTree->trans));
+					memcpy(&h1_asset->rigidVertLists[i].collisionTree->scale, &asset->vertList[i].collisionTree->scale,
+						sizeof(asset->vertList[i].collisionTree->scale));
 
-					collisionTree->leafCount = asset->vertList[j].collisionTree->leafCount;
-					auto leafs = new H1::XSurfaceCollisionLeaf[collisionTree->leafCount]();
-					for (int n = 0; n < collisionTree->leafCount; n++)
+					h1_asset->rigidVertLists[i].collisionTree->nodeCount = asset->vertList[i].collisionTree->nodeCount;
+					h1_asset->rigidVertLists[i].collisionTree->nodes = mem->Alloc<H1::XSurfaceCollisionNode>(
+						asset->vertList[i].collisionTree->nodeCount);
+					for (int j = 0; j < asset->vertList[i].collisionTree->nodeCount; j++)
 					{
-						leafs[n].triangleBeginIndex = asset->vertList[j].collisionTree->leafs[n].triangleBeginIndex;
-					}
-					collisionTree->leafs = reinterpret_cast<H1::XSurfaceCollisionLeaf *__ptr64>(leafs);
+						memcpy(&h1_asset->rigidVertLists[i].collisionTree->nodes[j].aabb.mins,
+							&asset->vertList[i].collisionTree->nodes[j].aabb.mins,
+							sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.mins));
+						memcpy(&h1_asset->rigidVertLists[i].collisionTree->nodes[j].aabb.maxs,
+							&asset->vertList[i].collisionTree->nodes[j].aabb.maxs,
+							sizeof(asset->vertList[i].collisionTree->nodes[j].aabb.maxs));
 
-					vertList[j].collisionTree = reinterpret_cast<H1::XSurfaceCollisionTree *__ptr64>(collisionTree);
+						h1_asset->rigidVertLists[i].collisionTree->nodes[j].childBeginIndex =
+							asset->vertList[i].collisionTree->nodes[j].childBeginIndex;
+						h1_asset->rigidVertLists[i].collisionTree->nodes[j].childCount =
+							asset->vertList[i].collisionTree->nodes[j].childCount;
+					}
+
+					h1_asset->rigidVertLists[i].collisionTree->leafCount = asset->vertList[i].collisionTree->leafCount;
+					h1_asset->rigidVertLists[i].collisionTree->leafs = mem->Alloc<H1::XSurfaceCollisionLeaf>(
+						asset->vertList[i].collisionTree->leafCount);
+					for (int j = 0; j < asset->vertList[i].collisionTree->leafCount; j++)
+					{
+						h1_asset->rigidVertLists[i].collisionTree->leafs[j].triangleBeginIndex =
+							asset->vertList[i].collisionTree->leafs[j].triangleBeginIndex;
+					}
 				}
 			}
-			surf->rigidVertLists = reinterpret_cast<H1::XRigidVertList *__ptr64>(vertList);
 
-			if (blendVertsTotal > 0)
-			{
-				auto blendVerts = new H1::XBlendInfo[blendVertsDataLength]();
-				for (int j = 0; j < blendVertsDataLength; j++)
-				{
-					blendVerts[j] = asset->vertInfo.vertsBlend[j];
-				}
-				surf->blendVerts = reinterpret_cast<H1::XBlendInfo *__ptr64>(blendVerts);
-			}
+			// blend verts
+			memcpy(&h1_asset->blendVertCounts, &asset->vertInfo.vertCount, sizeof(asset->vertInfo.vertCount));
+			h1_asset->blendVerts = reinterpret_cast<unsigned short* __ptr64>(asset->vertInfo.vertsBlend);
 
-			auto blendVertsTable = new H1::BlendVertsUnknown[asset->vertCount]();
-			surf->blendVertsTable = reinterpret_cast<H1::BlendVertsUnknown *__ptr64>(blendVertsTable);
-			PrepareVertexWeights(surf);
+			h1_asset->blendVertsTable = mem->Alloc<H1::BlendVertsUnknown>(asset->vertCount);
+			PrepareVertexWeights(h1_asset);
 			//GenerateH1BlendVertsShit(surf);
 
-			memcpy(surf->partBits, asset->partBits, sizeof(XSurface::partBits));
+			memcpy(h1_asset->partBits, asset->partBits, sizeof(XSurface::partBits));
 		}
 
-		H1::XModelSurfs *convert_from_iw3(XModel *model, int index, ZoneMemory *mem)
+		H1::XModelSurfs* GenerateH1XModelSurfs(XModel* model, int index, ZoneMemory* mem)
 		{
 			// allocate H1 XModelSurfs structure
 			const auto h1_asset = mem->Alloc<H1::XModelSurfs>();
@@ -571,9 +520,9 @@ namespace ZoneTool
 			memcpy(&h1_asset->partBits, &model->lodInfo[index].partBits, sizeof(model->lodInfo[index].partBits));
 
 			h1_asset->surfs = mem->Alloc<H1::XSurface>(h1_asset->numsurfs);
-
 			for (unsigned short i = 0; i < h1_asset->numsurfs; i++)
 			{
+				//GenerateH1XSurface(&h1_asset->surfs[i], &model->surfs[model->lodInfo[index].surfIndex + i], mem);
 				surf_convert_from_iw3(&h1_asset->surfs[i], &model->surfs[model->lodInfo[index].surfIndex + i], mem);
 			}
 
@@ -657,7 +606,7 @@ namespace ZoneTool
 			}
 		}
 
-		H1::XModel *GenerateH1Model(XModel *asset, ZoneMemory *mem)
+		H1::XModel* GenerateH1Model(XModel* asset, ZoneMemory* mem)
 		{
 			// allocate H1 XModel structure
 			auto *h1_asset = mem->Alloc<H1::XModel>();
@@ -667,9 +616,9 @@ namespace ZoneTool
 			h1_asset->numRootBones = asset->numRootBones;
 			h1_asset->numsurfs = asset->numsurfs;
 			h1_asset->numReactiveMotionParts = 0;
-			h1_asset->lodRampType = asset->lodRampType;
+			h1_asset->lodRampType = 0;
 			h1_asset->scale = 1.0f;
-			memset(h1_asset->noScalePartBits, 0, sizeof(unsigned int[8]));
+			memset(h1_asset->noScalePartBits, 0, sizeof(h1_asset->noScalePartBits));
 
 			h1_asset->boneNames = mem->Alloc<H1::scr_string_t>(asset->numBones);
 			for (auto i = 0; i < asset->numBones; i++)
@@ -697,25 +646,16 @@ namespace ZoneTool
 
 			for (auto i = 0; i < 6; i++)
 			{
-				h1_asset->lodInfo[i].dist = 1000000.00f;
+				h1_asset->lodInfo[i].dist = 1000000.0f;
 			}
 
 			// level of detail data
 			for (auto i = 0; i < asset->numLods; i++)
 			{
 				h1_asset->lodInfo[i].dist = asset->lodInfo[i].dist;
-
 				h1_asset->lodInfo[i].numsurfs = asset->lodInfo[i].numsurfs;
 				h1_asset->lodInfo[i].surfIndex = asset->lodInfo[i].surfIndex;
-
-				if (h1_asset->lodInfo[i].numsurfs > 16)
-				{
-					h1_asset->lodInfo[i].numsurfs = 16;
-					//__debugbreak();
-				}
-
-				//h1_asset->lodInfo[i].modelSurfs = GenerateH1XModelSurfs(asset, i, mem);
-				h1_asset->lodInfo[i].modelSurfs = convert_from_iw3(asset, i, mem);
+				h1_asset->lodInfo[i].modelSurfs = GenerateH1XModelSurfs(asset, i, mem);
 
 				H1::IXSurface::dump(h1_asset->lodInfo[i].modelSurfs);
 
