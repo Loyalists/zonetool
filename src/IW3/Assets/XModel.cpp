@@ -446,16 +446,16 @@ namespace ZoneTool
 				memcpy(&vert, &asset->verts0[i], sizeof(IW3::GfxPackedVertex));
 
 				float texCoord_unpacked[2]{ 0.0f, 0.0f };
-				PackedShit::Vec2UnpackTexCoords(asset->verts0[i].texCoord, texCoord_unpacked);
+				PackedVec::Vec2UnpackTexCoords(asset->verts0[i].texCoord.packed, texCoord_unpacked);
 				std::swap(texCoord_unpacked[0], texCoord_unpacked[1]); // these are inverted...
-				vert.texCoord.packed = PackedShit::Vec2PackTexCoords(texCoord_unpacked).packed;
+				vert.texCoord.packed = PackedVec::Vec2PackTexCoords(texCoord_unpacked);
 
 				// re-calculate these...
 				float normal_unpacked[3]{ 0.0f, 0.0f, 0.0f };
-				PackedShit::Vec3UnpackUnitVec(asset->verts0[i].normal, normal_unpacked);
+				PackedVec::Vec3UnpackUnitVec(asset->verts0[i].normal.array, normal_unpacked);
 
 				float tangent_unpacked[3]{ 0.0f, 0.0f, 0.0f };
-				PackedShit::Vec3UnpackUnitVec(asset->verts0[i].tangent, tangent_unpacked);
+				PackedVec::Vec3UnpackUnitVec(asset->verts0[i].tangent.array, tangent_unpacked);
 
 				float normal[3] = { normal_unpacked[0], normal_unpacked[1], normal_unpacked[2] };
 				float tangent[3] = { tangent_unpacked[0], tangent_unpacked[1], tangent_unpacked[2] };
@@ -466,8 +466,8 @@ namespace ZoneTool
 					sign = 1.0f;
 				}
 
-				vert.normal.packed = PackedShit::Vec3PackUnitVecWithAlpha(normal, 1.0f).packed;
-				//vert.tangent.packed = PackedShit::Vec3PackUnitVecWithAlpha(tangent, sign).packed;
+				vert.normal.packed = PackedVec::Vec3PackUnitVecWithAlpha(normal, 1.0f);
+				//vert.tangent.packed = PackedVec::Vec3PackUnitVecWithAlpha(tangent, sign);
 				vert.tangent.packed = vert.normal.packed;
 
 				// correct color : bgra->rgba
