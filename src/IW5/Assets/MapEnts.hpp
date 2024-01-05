@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IMapEnts
 	{
-		class IMapEnts
-		{
-		public:
-			static void dump(MapEnts* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(MapEnts* asset, ZoneMemory* mem);
+	};
 }

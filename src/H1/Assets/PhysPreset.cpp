@@ -1,23 +1,20 @@
 #include "stdafx.hpp"
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	void IPhysPreset::dump(PhysPreset* asset)
 	{
-		void IPhysPreset::dump(PhysPreset* asset)
+		const auto path = "physpreset\\"s + asset->name + ".pp";
+
+		assetmanager::dumper write;
+		if (!write.open(path))
 		{
-			const auto path = "physpreset\\"s + asset->name + ".pp";
-
-			assetmanager::dumper write;
-			if (!write.open(path))
-			{
-				return;
-			}
-
-			write.dump_single(asset);
-			write.dump_string(asset->name);
-			write.dump_string(asset->sndAliasPrefix);
-			write.close();
+			return;
 		}
+
+		write.dump_single(asset);
+		write.dump_string(asset->name);
+		write.dump_string(asset->sndAliasPrefix);
+		write.close();
 	}
 }

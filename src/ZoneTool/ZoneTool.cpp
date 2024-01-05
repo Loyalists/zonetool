@@ -20,8 +20,12 @@
 
 std::string currentzone;
 
+zonetool::dump_target zonetool::dumping_target = zonetool::dump_target::h1;
+
 namespace ZoneTool
 {
+	linker_mode currentlinkermode{ linker_mode::none };
+
 	std::vector<std::shared_ptr<ILinker>> linkers;
 	std::map<std::string, std::function<void(std::vector<std::string>)>> commands;
 
@@ -204,14 +208,28 @@ namespace ZoneTool
 			// Check if enough arguments have been passed to the command
 			if (args.size() == 1)
 			{
-				ZONETOOL_ERROR("usage: dumpzone <zone>");
+				ZONETOOL_ERROR("usage: dumpzone <zone>, <target(optional)>");
 				return;
+			}
+
+			auto target = zonetool::dump_target::h1;
+			if (args.size() >= 3)
+			{
+				auto target_str = args[2];
+				if (target_str == "h1")
+				{
+					target = zonetool::dump_target::h1;
+				}
+				else if (target_str == "iw6")
+				{
+					target = zonetool::dump_target::iw6;
+				}
 			}
 
 			// Load zone
 			if (current_linker)
 			{
-				current_linker->dump_zone(args[1]);
+				current_linker->dump_zone(args[1], target);
 			}
 		});
 

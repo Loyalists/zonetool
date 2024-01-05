@@ -12,21 +12,6 @@ namespace ZoneTool
 {
 	namespace IW5
 	{
-		struct XAsset
-		{
-			XAssetType type;
-			XAssetHeader header;
-		};
-
-		struct XAssetEntry
-		{
-			XAsset asset;
-			unsigned int nextHash;
-			unsigned int nextOverride;
-			unsigned int nextPoolEntry;
-		};
-
-
 		class AssetHandler : public IPatch
 		{
 		private:

@@ -12,6 +12,12 @@ namespace ZoneTool
 {
 	namespace IW5
 	{
+#ifdef DEBUG
+		constexpr auto IS_DEBUG = true;
+#else
+		constexpr auto IS_DEBUG = false;
+#endif
+
 		extern bool is_dumping_complete;
 		extern bool is_dumping;
 
@@ -67,17 +73,17 @@ namespace ZoneTool
 
 		const char* GetAssetName(std::int32_t type, void* ptr)
 		{
-			if (type == image)
+			if (type == ASSET_TYPE_IMAGE)
 			{
 				return reinterpret_cast<GfxImage*>(ptr)->name;
 			}
 
-			if (type == localize)
+			if (type == ASSET_TYPE_LOCALIZE_ENTRY)
 			{
 				return reinterpret_cast<LocalizeEntry*>(ptr)->name;
 			}
 
-			if (type == menu)
+			if (type == ASSET_TYPE_MENU)
 			{
 				return reinterpret_cast<menuDef_t*>(ptr)->window.name;
 			}
@@ -176,7 +182,7 @@ namespace ZoneTool
 				{
 					for (auto& asset : referencedAssets)
 					{
-						if (asset.second.length() <= 1 || asset.first == XAssetType::loaded_sound)
+						if (asset.second.length() <= 1 || asset.first == XAssetType_old::loaded_sound)
 						{
 							continue;
 						}
@@ -192,21 +198,21 @@ namespace ZoneTool
 
 						ZONETOOL_INFO("Dumping additional asset \"%s\" because it is referenced by %s.", asset_name, fastfile.data());
 
-						if (type == XAssetType::xmodel)
+						if (type == XAssetType_old::xmodel)
 						{
 							auto* xmodel = reinterpret_cast<XModel*>(ref_asset);
-							for (auto i = 0; i < xmodel->numSurfaces; i++)
+							for (auto i = 0; i < xmodel->numsurfs; i++)
 							{
 								XAsset material_asset;
-								material_asset.type = XAssetType::material;
-								material_asset.header.material = xmodel->materials[i];
+								material_asset.type = ASSET_TYPE_MATERIAL;
+								material_asset.header.material = xmodel->materialHandles[i];
 								DB_LogLoadedAsset(material_asset.header.data, material_asset.type);
 							}
 							for (auto i = 0; i < xmodel->numLods; i++)
 							{
 								XAsset surface_asset;
-								surface_asset.type = XAssetType::xmodelsurfs;
-								surface_asset.header.xsurface = xmodel->lods[i].surfaces;
+								surface_asset.type = ASSET_TYPE_XMODEL_SURFS;
+								surface_asset.header.modelSurfs = xmodel->lodInfo[i].modelSurfs;
 								DB_LogLoadedAsset(surface_asset.header.data, surface_asset.type);
 							}
 						}
@@ -247,7 +253,7 @@ namespace ZoneTool
 						DUMPCASE(sound, ISound, snd_alias_list_t);
 						DUMPCASE(sndcurve, ISoundCurve, SndCurve);
 						DUMPCASE(xmodel, IXModel, XModel);
-						DUMPCASE(xmodelsurfs, IXSurface, ModelSurface);
+						DUMPCASE(xmodelsurfs, IXSurface, XModelSurfs);
 						DUMPCASE(xanim, IXAnimParts, XAnimParts);
 					}
 					catch (std::exception& ex)
@@ -506,7 +512,7 @@ namespace ZoneTool
 			if (textureMap.find(image->name) != textureMap.end())
 			{
 				void* data = &buffer[textureMap.at(image->name)];
-				image->texture = reinterpret_cast<GfxImageLoadDef*>(data);
+				image->texture.loadDef = reinterpret_cast<GfxImageLoadDef*>(data);
 				return;
 			}
 			textureMap[image->name] = textureBufferIndex;
@@ -523,7 +529,7 @@ namespace ZoneTool
 
 			std::memcpy(data, loadDef, size);
 
-			image->texture = reinterpret_cast<GfxImageLoadDef*>(data);
+			image->texture.loadDef = reinterpret_cast<GfxImageLoadDef*>(data);
 		}
 
 		void Alloc_MssSound()

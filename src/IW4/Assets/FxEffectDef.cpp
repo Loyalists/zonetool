@@ -23,7 +23,7 @@ namespace ZoneTool
 			for (auto i = 0; i < elem_def_count; i++)
 			{
 				memcpy(&iw5_fx->elemDefs[i], &asset->elemDefs[i], sizeof IW4::FxElemDef);
-				iw5_fx->elemDefs[i].pad = 0;
+				iw5_fx->elemDefs[i].randomSeed = 0;
 			}
 
 			IW5::IFxEffectDef::dump(iw5_fx, mem);

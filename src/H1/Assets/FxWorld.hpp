@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IFxWorld
 	{
-		class IFxWorld
-		{
-		public:
-			static void dump(FxWorld* asset);
-		};
-	}
+	public:
+		static void dump(FxWorld* asset);
+	};
 }

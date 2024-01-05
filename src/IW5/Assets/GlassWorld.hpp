@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IGlassWorld
 	{
-		class IGlassWorld
-		{
-		public:
-			static void dump(GlassWorld* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(GlassWorld* asset, ZoneMemory* mem);
+	};
 }

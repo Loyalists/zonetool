@@ -1,14 +1,11 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class ISoundCurve
 	{
-		class ISoundCurve
-		{
-		public:
-			static void dump(SndCurve* asset, const std::string& type);
-			static void dump(SndCurve* asset);
-		};
-	}
+	public:
+		static void dump(SndCurve* asset, const std::string& type);
+		static void dump(SndCurve* asset);
+	};
 }

@@ -27,8 +27,8 @@ namespace ZoneTool
 			}
 
 			// copy draw data
-			memcpy(iw5_asset->worldDraw._portpad0, asset->worldDraw._portpad0, 16);
-			memcpy(iw5_asset->worldDraw._portpad1, asset->worldDraw._portpad1, 56);
+			memcpy(&iw5_asset->draw.reflectionProbeCount, &asset->worldDraw.reflectionProbeCount, 16);
+			memcpy(&iw5_asset->draw.lightmapCount, &asset->worldDraw.lightmapCount, 56);
 
 			// copy remaining GfxWorld data
 			memcpy(&iw5_asset->lightGrid, &asset->lightGrid,

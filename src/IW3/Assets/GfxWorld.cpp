@@ -1,34 +1,10 @@
 #include "stdafx.hpp"
 #include "H1/Assets/GfxWorld.hpp"
 
+#include "H1/Utils/Utils.hpp"
+
 namespace ZoneTool
 {
-	namespace
-	{
-		namespace PackedShit
-		{
-			using namespace IW3;
-
-			PackedUnitVec Vec3PackUnitVec(float* in) // h1 func
-			{
-				int x = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[0])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				int y = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[1])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				int z = (int)floor(((fmaxf(-1.0f, fminf(1.0f, in[2])) + 1.0f) * 0.5f) * 1023.0f + 0.5f);
-				return (PackedUnitVec)((z << 20) | (y << 10) | x);
-			}
-
-			void Vec3UnpackUnitVec(const PackedUnitVec in, float* out) // t6 func
-			{
-				float decodeScale;
-
-				decodeScale = (in.array[3] - -192.0f) / 32385.0f;
-				out[0] = (in.array[0] - 127.0f) * decodeScale;
-				out[1] = (in.array[1] - 127.0f) * decodeScale;
-				out[2] = (in.array[2] - 127.0f) * decodeScale;
-			}
-		}
-	}
-
 	namespace IW3
 	{
 		H1::GfxWorld* GenerateH1GfxWorld(GfxWorld* asset, ZoneMemory* mem)
@@ -227,13 +203,13 @@ namespace ZoneTool
 
 				// re-calculate these...
 				float normal_unpacked[3]{0};
-				PackedShit::Vec3UnpackUnitVec(asset->vd.vertices[i].normal, normal_unpacked);
-				h1_asset->draw.vd.vertices[i].normal.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
+				PackedVec::Vec3UnpackUnitVec(asset->vd.vertices[i].normal.array, normal_unpacked);
+				h1_asset->draw.vd.vertices[i].normal.packed = PackedVec::Vec3PackUnitVec(normal_unpacked);
 
 				// i don't understand why normal unpacked seems to be correct instead
 				float tangent_unpacked[3]{0};
-				PackedShit::Vec3UnpackUnitVec(asset->vd.vertices[i].tangent, tangent_unpacked);
-				h1_asset->draw.vd.vertices[i].tangent.packed = PackedShit::Vec3PackUnitVec(normal_unpacked).packed;
+				PackedVec::Vec3UnpackUnitVec(asset->vd.vertices[i].tangent.array, tangent_unpacked);
+				h1_asset->draw.vd.vertices[i].tangent.packed = PackedVec::Vec3PackUnitVec(normal_unpacked);
 
 				// correct color : bgra->rgba
 				h1_asset->draw.vd.vertices[i].color.array[0] = asset->vd.vertices[i].color.array[2];

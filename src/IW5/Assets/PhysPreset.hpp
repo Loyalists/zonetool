@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IPhysPreset
 	{
-		class IPhysPreset
-		{
-		public:
-			static void dump(PhysPreset* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(PhysPreset* asset, ZoneMemory* mem);
+	};
 }

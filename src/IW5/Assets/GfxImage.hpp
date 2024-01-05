@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IGfxImage
 	{
-		class IGfxImage
-		{
-		public:
-			static void dump(GfxImage* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(GfxImage* asset, ZoneMemory* mem);
+	};
 }

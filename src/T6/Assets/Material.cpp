@@ -169,15 +169,15 @@ namespace ZoneTool
 					//h1_state_bits_table[i].loadBits[1] = asset->stateBitsTable[i].loadBits[2];
 				}
 
-				H1::ITechset::dump_stateinfo(technique, &dummy_mat);
-				H1::ITechset::dump_statebits(technique, generate_h1_statebits(asset->stateBitsEntry, allocator));
-				H1::ITechset::dump_statebits_map(technique, h1_state_bits_table, 0);
+				H1::ITechset::dump_stateinfo(technique, c_name, &dummy_mat);
+				H1::ITechset::dump_statebits(technique, c_name, generate_h1_statebits(asset->stateBitsEntry, allocator));
+				H1::ITechset::dump_statebits_map(technique, c_name, h1_state_bits_table, 0);
 
 				unsigned char dummy_buffer_indices[H1::MaterialTechniqueType::TECHNIQUE_COUNT]{};
 				H1::MaterialConstantBufferDef dummy_constant_buffer{};
 
-				H1::ITechset::dump_constant_buffer_indexes(technique, dummy_buffer_indices);
-				H1::ITechset::dump_constant_buffer_def_array(technique, 0, &dummy_constant_buffer);
+				H1::ITechset::dump_constant_buffer_indexes(technique, c_name, dummy_buffer_indices);
+				H1::ITechset::dump_constant_buffer_def_array(technique, c_name, 0, &dummy_constant_buffer);
 			}
 
 			MATERIAL_DUMP_INFO(gameFlags);

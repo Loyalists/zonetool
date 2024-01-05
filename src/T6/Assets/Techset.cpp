@@ -15,11 +15,6 @@
 
 namespace ZoneTool
 {
-	namespace H1
-	{
-		constexpr auto TECHNIQUE_NONE = 250;
-	}
-
 	namespace T6
 	{
 		std::unordered_map<int, int> mapped_techniques =

@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IXSurface
 	{
-		class IXSurface
-		{
-		public:
-			static void dump(XModelSurfs* asset);
-		};
-	}
+	public:
+		static void dump(XModelSurfs* asset);
+	};
 }

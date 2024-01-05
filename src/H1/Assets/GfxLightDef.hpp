@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IGfxLightDef
 	{
-		class IGfxLightDef
-		{
-		public:
-			static void dump(GfxLightDef* asset);
-		};
-	}
+	public:
+		static void dump(GfxLightDef* asset);
+	};
 }

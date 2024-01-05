@@ -137,6 +137,16 @@ namespace ZoneTool
 #pragma push(pop)
 }
 
+namespace zonetool
+{
+	enum dump_target
+	{
+		iw6,
+		h1
+	};
+	extern dump_target dumping_target;
+}
+
 template <typename T1, typename T2>
 std::size_t Difference(const T1& t1, const T2& t2)
 {

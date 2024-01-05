@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IFxEffectDef
 	{
-		class IFxEffectDef
-		{
-		public:
-			static void dump(FxEffectDef* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(FxEffectDef* asset, ZoneMemory* mem);
+	};
 }

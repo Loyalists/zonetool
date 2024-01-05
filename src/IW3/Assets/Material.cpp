@@ -2,12 +2,14 @@
 //#include "H1/Assets/Material.hpp"
 #include "H1/Utils/IO/assetmanager.hpp"
 
+#include "H1/Assets/Techset.hpp"
+
 #include "IW5/Structs.hpp"
 #include "IW5/Assets/Material.hpp"
 
 namespace ZoneTool
 {
-	namespace
+	namespace H1
 	{
 		std::string get_h1_techset(std::string name, std::string matname, bool* result)
 		{
@@ -208,7 +210,10 @@ namespace ZoneTool
 			}
 			return H1::MTL_TYPE_DEFAULT;
 		}
+	}
 
+	namespace
+	{
 		std::string clean_name(const std::string& name)
 		{
 			auto new_name = name;
@@ -259,6 +264,111 @@ namespace ZoneTool
 
 	namespace IW3
 	{
+		enum MaterialTechniqueType
+		{
+			TECHNIQUE_DEPTH_PREPASS = 0x0,
+			TECHNIQUE_BUILD_FLOAT_Z = 0x1,
+			TECHNIQUE_BUILD_SHADOWMAP_DEPTH = 0x2,
+			TECHNIQUE_BUILD_SHADOWMAP_COLOR = 0x3,
+			TECHNIQUE_UNLIT = 0x4,
+			TECHNIQUE_EMISSIVE = 0x5,
+			TECHNIQUE_EMISSIVE_SHADOW = 0x6,
+			TECHNIQUE_LIT_BEGIN = 0x7,
+			TECHNIQUE_LIT = 0x7,
+			TECHNIQUE_LIT_SUN = 0x8,
+			TECHNIQUE_LIT_SUN_SHADOW = 0x9,
+			TECHNIQUE_LIT_SPOT = 0xA,
+			TECHNIQUE_LIT_SPOT_SHADOW = 0xB,
+			TECHNIQUE_LIT_OMNI = 0xC,
+			TECHNIQUE_LIT_OMNI_SHADOW = 0xD,
+			TECHNIQUE_LIT_INSTANCED = 0xE,
+			TECHNIQUE_LIT_INSTANCED_SUN = 0xF,
+			TECHNIQUE_LIT_INSTANCED_SUN_SHADOW = 0x10,
+			TECHNIQUE_LIT_INSTANCED_SPOT = 0x11,
+			TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW = 0x12,
+			TECHNIQUE_LIT_INSTANCED_OMNI = 0x13,
+			TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW = 0x14,
+			TECHNIQUE_LIT_END = 0x15,
+			TECHNIQUE_LIGHT_SPOT = 0x15,
+			TECHNIQUE_LIGHT_OMNI = 0x16,
+			TECHNIQUE_LIGHT_SPOT_SHADOW = 0x17,
+			TECHNIQUE_FAKELIGHT_NORMAL = 0x18,
+			TECHNIQUE_FAKELIGHT_VIEW = 0x19,
+			TECHNIQUE_SUNLIGHT_PREVIEW = 0x1A,
+			TECHNIQUE_CASE_TEXTURE = 0x1B,
+			TECHNIQUE_WIREFRAME_SOLID = 0x1C,
+			TECHNIQUE_WIREFRAME_SHADED = 0x1D,
+			TECHNIQUE_SHADOWCOOKIE_CASTER = 0x1E,
+			TECHNIQUE_SHADOWCOOKIE_RECEIVER = 0x1F,
+			TECHNIQUE_DEBUG_BUMPMAP = 0x20,
+			TECHNIQUE_DEBUG_BUMPMAP_INSTANCED = 0x21,
+			//TECHNIQUE_COUNT = 0x22
+		};
+
+		std::unordered_map <std::int32_t, std::int32_t> state_index_map =
+		{
+			{H1::TECHNIQUE_ZPREPASS, IW3::TECHNIQUE_DEPTH_PREPASS},
+			{H1::TECHNIQUE_BUILD_SHADOWMAP_DEPTH, IW3::TECHNIQUE_BUILD_SHADOWMAP_DEPTH},
+			{H1::TECHNIQUE_BUILD_SHADOWMAP_COLOR, IW3::TECHNIQUE_BUILD_SHADOWMAP_COLOR},
+			{H1::TECHNIQUE_UNLIT, IW3::TECHNIQUE_UNLIT},
+			{H1::TECHNIQUE_EMISSIVE, IW3::TECHNIQUE_EMISSIVE},
+			{H1::TECHNIQUE_EMISSIVE_SHADOW, IW3::TECHNIQUE_EMISSIVE_SHADOW},
+			{H1::TECHNIQUE_LIT, IW3::TECHNIQUE_LIT},
+			{H1::TECHNIQUE_LIT_DIR, IW3::TECHNIQUE_LIT_SUN},
+			{H1::TECHNIQUE_LIT_DIR_SHADOW, IW3::TECHNIQUE_LIT_SUN_SHADOW},
+			{H1::TECHNIQUE_LIT_SPOT, IW3::TECHNIQUE_LIT_SPOT},
+			{H1::TECHNIQUE_LIT_SPOT_SHADOW, IW3::TECHNIQUE_LIT_SPOT_SHADOW},
+			{H1::TECHNIQUE_LIT_OMNI, IW3::TECHNIQUE_LIT_OMNI},
+			{H1::TECHNIQUE_LIT_OMNI_SHADOW, IW3::TECHNIQUE_LIT_OMNI_SHADOW},
+			{H1::TECHNIQUE_INSTANCED_LIT, IW3::TECHNIQUE_LIT_INSTANCED},
+			{H1::TECHNIQUE_INSTANCED_LIT_DIR, IW3::TECHNIQUE_LIT_INSTANCED_SUN},
+			{H1::TECHNIQUE_INSTANCED_LIT_DIR_SHADOW, IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW},
+			{H1::TECHNIQUE_INSTANCED_LIT_SPOT, IW3::TECHNIQUE_LIT_INSTANCED_SPOT},
+			{H1::TECHNIQUE_INSTANCED_LIT_SPOT_SHADOW, IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW},
+			{H1::TECHNIQUE_INSTANCED_LIT_OMNI, IW3::TECHNIQUE_LIT_INSTANCED_OMNI},
+			{H1::TECHNIQUE_INSTANCED_LIT_OMNI_SHADOW, IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW},
+			{H1::TECHNIQUE_LIGHT_SPOT, IW3::TECHNIQUE_LIGHT_SPOT},
+			{H1::TECHNIQUE_LIGHT_OMNI, IW3::TECHNIQUE_LIGHT_OMNI},
+			{H1::TECHNIQUE_LIGHT_SPOT_SHADOW, IW3::TECHNIQUE_LIGHT_SPOT_SHADOW},
+			{H1::TECHNIQUE_FAKELIGHT_NORMAL, IW3::TECHNIQUE_FAKELIGHT_NORMAL},
+			{H1::TECHNIQUE_FAKELIGHT_VIEW, IW3::TECHNIQUE_FAKELIGHT_VIEW},
+			{H1::TECHNIQUE_SUNLIGHT_PREVIEW, IW3::TECHNIQUE_SUNLIGHT_PREVIEW},
+			{H1::TECHNIQUE_CASE_TEXTURE, IW3::TECHNIQUE_CASE_TEXTURE},
+			{H1::TECHNIQUE_WIREFRAME_SOLID, IW3::TECHNIQUE_WIREFRAME_SOLID},
+			{H1::TECHNIQUE_WIREFRAME_SHADED, IW3::TECHNIQUE_WIREFRAME_SHADED},
+			//{H1::TECHNIQUE_SHADOWCOOKIE_CASTER, IW3::TECHNIQUE_SHADOWCOOKIE_CASTER},
+			//{H1::TECHNIQUE_SHADOWCOOKIE_RECEIVER, IW3::TECHNIQUE_SHADOWCOOKIE_RECEIVER},
+			{H1::TECHNIQUE_DEBUG_BUMPMAP, IW3::TECHNIQUE_DEBUG_BUMPMAP},
+			//{H1::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED, IW3::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED},
+		};
+
+		void create_statebis(Material* asset, const std::string& iw3_techset, const std::string& h1_techset)
+		{
+			char statebits[H1::TECHNIQUE_COUNT]{};
+			memset(statebits, 0xFF, sizeof(statebits));
+
+			for (auto i = 0; i < H1::TECHNIQUE_COUNT; i++)
+			{
+				if (state_index_map.contains(i))
+				{
+					const auto state_index = state_index_map.at(i);
+					statebits[i] = asset->stateBitsEntry[state_index];
+				}
+			}
+
+			statebits[H1::TECHNIQUE_LIGHT_SPOT_DFOG] = statebits[H1::TECHNIQUE_LIGHT_SPOT];
+			statebits[H1::TECHNIQUE_LIGHT_OMNI_DFOG] = statebits[H1::TECHNIQUE_LIGHT_OMNI];
+			statebits[H1::TECHNIQUE_LIGHT_SPOT_SHADOW_DFOG] = statebits[H1::TECHNIQUE_LIGHT_SPOT_SHADOW];
+			statebits[H1::TECHNIQUE_LIGHT_SPOT_SHADOW_CUCOLORIS_DFOG] = statebits[H1::TECHNIQUE_LIGHT_SPOT_SHADOW_CUCOLORIS];
+
+			statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT_DFOG] = statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT];
+			statebits[H1::TECHNIQUE_INSTANCED_LIGHT_OMNI_DFOG] = statebits[H1::TECHNIQUE_INSTANCED_LIGHT_OMNI];
+			statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT_SHADOW_DFOG] = statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT_SHADOW];
+			statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT_SHADOW_CUCOLORIS_DFOG] = statebits[H1::TECHNIQUE_INSTANCED_LIGHT_SPOT_SHADOW_CUCOLORIS];
+
+			H1::ITechset::dump_statebits(h1_techset, clean_name(asset->name), reinterpret_cast<unsigned char*>(statebits));
+		}
+
 		void IMaterial::dump(Material* asset, ZoneMemory* mem)
 		{
 			if (asset)
@@ -279,13 +389,15 @@ namespace ZoneTool
 					iw3_techset = asset->techniqueSet->name;
 
 					bool result = false;
-					h1_techset = get_h1_techset(iw3_techset, asset->name, &result);
+					h1_techset = H1::get_h1_techset(iw3_techset, asset->name, &result);
 					if (!result)
 					{
 						ZONETOOL_ERROR("Not dumping material \"%s\"", asset->name);
 						return;
 					}
 					matdata["techniqueSet->name"] = h1_techset;
+
+					//create_statebis(asset, iw3_techset, h1_techset); // test
 				}
 
 				// iw3xpo
@@ -298,7 +410,7 @@ namespace ZoneTool
 
 				matdata["gameFlags"] = h1_game_flags.packed;//asset->gameFlags; // convert
 
-				matdata["sortKey"] = get_h1_sortkey(asset->sortKey, asset->name, h1_techset, iw3_techset);
+				matdata["sortKey"] = H1::get_h1_sortkey(asset->sortKey, asset->name, h1_techset, iw3_techset);
 				matdata["renderFlags"] = 0; // idk
 
 				matdata["textureAtlasRowCount"] = asset->textureAtlasRowCount;
@@ -306,29 +418,13 @@ namespace ZoneTool
 				matdata["textureAtlasFrameBlend"] = 0;
 				matdata["textureAtlasAsArray"] = 0;
 
-				matdata["surfaceTypeBits"] = convert_surf_type_bits(asset->surfaceTypeBits);
+				matdata["surfaceTypeBits"] = H1::convert_surf_type_bits(asset->surfaceTypeBits);
 				// hashIndex;
 
 				//matdata["stateFlags"] = asset->stateFlags; // convert ( should be the same )
-				matdata["cameraRegion"] = get_h1_camera_region(asset->cameraRegion, asset->name, h1_techset, iw3_techset);
-				matdata["materialType"] = get_material_type_from_name(asset->name);
+				matdata["cameraRegion"] = H1::get_h1_camera_region(asset->cameraRegion, asset->name, h1_techset, iw3_techset);
+				matdata["materialType"] = H1::get_material_type_from_name(asset->name);
 				matdata["assetFlags"] = H1::MTL_ASSETFLAG_NONE;
-
-				/*if (asset->drawSurf.packed != 0)
-				{
-					matdata["drawSurf"]["objectId"] = static_cast<int>(asset->drawSurf.fields.objectId);
-					matdata["drawSurf"]["reflectionProbeIndex"] = static_cast<int>(asset->drawSurf.fields.reflectionProbeIndex);
-					matdata["drawSurf"]["hasGfxEntIndex"] = 0;
-					matdata["drawSurf"]["customIndex"] = static_cast<int>(asset->drawSurf.fields.customIndex);
-					matdata["drawSurf"]["materialSortedIndex"] = static_cast<int>(asset->drawSurf.fields.materialSortedIndex);
-					matdata["drawSurf"]["tessellation"] = 0;
-					matdata["drawSurf"]["prepass"] = static_cast<int>(asset->drawSurf.fields.prepass);
-					matdata["drawSurf"]["useHeroLighting"] = 0;
-					matdata["drawSurf"]["sceneLightEnvIndex"] = static_cast<int>(asset->drawSurf.fields.primaryLightIndex);
-					matdata["drawSurf"]["viewModelRender"] = 0;
-					matdata["drawSurf"]["surfType"] = static_cast<int>(asset->drawSurf.fields.surfType); // convert
-					matdata["drawSurf"]["primarySortKey"] = matdata["sortKey"].get<int>(); // static_cast<int>(asset->drawSurf.fields.primarySortKey)
-				}*/
 
 				ordered_json constant_table;
 				for (int i = 0; i < asset->constantCount; i++)

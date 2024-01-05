@@ -2,6 +2,7 @@
 #include "H1/Assets/ClipMap.hpp"
 
 #include "H1/Assets/PhysWorld.hpp"
+#include "H1/Utils/PhysWorld/generate.hpp"
 
 namespace ZoneTool
 {
@@ -458,36 +459,6 @@ namespace ZoneTool
 			return h1_asset;
 		}
 
-		H1::PhysWorld* generate_physics_world(H1::clipMap_t* asset, ZoneMemory* mem)
-		{
-			auto* physmap = mem->Alloc<H1::PhysWorld>();
-			physmap->name = asset->name;
-
-			physmap->brushModelCount = asset->numSubModels;
-			physmap->brushModels = mem->Alloc<H1::PhysBrushModel>(physmap->brushModelCount);
-			for (unsigned int i = 0; i < physmap->brushModelCount; i++)
-			{
-				physmap->brushModels[i].fields.polytopeIndex = -1;
-				physmap->brushModels[i].fields.unk = -1;
-				physmap->brushModels[i].fields.worldIndex = 0;
-				physmap->brushModels[i].fields.meshIndex = -1;
-			}
-
-			physmap->polytopeCount = 0;
-			physmap->polytopeDatas = nullptr;
-
-			// todo: mesh data
-			physmap->meshDataCount = 0;
-			physmap->meshDatas = nullptr;
-
-			physmap->waterVolumeDefCount = 0;
-			physmap->waterVolumeDefs = nullptr;
-
-			return physmap;
-		}
-
-		
-
 		void IClipMap::dump(clipMap_t* asset, ZoneMemory* mem)
 		{
 			// generate h1 clipmap
@@ -497,7 +468,8 @@ namespace ZoneTool
 			H1::IClipMap::dump(h1_asset, SL_ConvertToString);
 
 			// dump physmap here too i guess, since it's needed.
-			auto* physmap = generate_physics_world(h1_asset, mem);
+			allocator allocator;
+			auto* physmap = ZoneTool::H1::physworld_gen::generate_physworld(h1_asset, &allocator);
 
 			H1::IPhysWorld::dump(physmap, SL_ConvertToString);
 		}

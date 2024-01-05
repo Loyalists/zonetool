@@ -1,5 +1,4 @@
 #include "stdafx.hpp"
-#include "H1/Assets/RawFile.hpp"
 #include "IW5/Structs.hpp"
 
 #include "IW5/Assets/RawFile.hpp"

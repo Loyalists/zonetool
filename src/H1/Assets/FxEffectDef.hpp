@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IFxEffectDef
 	{
-		class IFxEffectDef
-		{
-		public:
-			static void dump(FxEffectDef* asset);
-		};
-	}
+	public:
+		static void dump(FxEffectDef* asset);
+	};
 }

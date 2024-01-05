@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IGlassWorld
 	{
-		class IGlassWorld
-		{
-		public:
-			static void dump(GlassWorld* asset);
-		};
-	}
+	public:
+		static void dump(GlassWorld* asset);
+	};
 }

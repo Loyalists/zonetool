@@ -21,8 +21,8 @@ namespace ZoneTool
 			// copy data
 			for (auto i = 0u; i < iw5_comworld->primaryLightCount; i++)
 			{
-				memcpy(iw5_comworld->primaryLights[i]._portpad0, asset->primaryLights[i]._portpad0, 28);
-				memcpy(iw5_comworld->primaryLights[i]._portpad1, asset->primaryLights[i]._portpad1, 40);
+				memcpy(&iw5_comworld->primaryLights[i].type, asset->primaryLights[i]._portpad0, 28);
+				memcpy(&iw5_comworld->primaryLights[i].origin, asset->primaryLights[i]._portpad1, 40);
 
 				iw5_comworld->primaryLights[i].up[0] = 0.0f;
 				iw5_comworld->primaryLights[i].up[1] = 0.0f;

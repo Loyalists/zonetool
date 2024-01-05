@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IGfxImage
 	{
-		class IGfxImage
-		{
-		public:
-			static void dump(GfxImage* asset);
-		};
-	}
+	public:
+		static void dump(GfxImage* asset);
+	};
 }

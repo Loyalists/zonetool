@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::H1
 {
-	namespace H1
+	class IComWorld
 	{
-		class IComWorld
-		{
-		public:
-			static void dump(ComWorld* asset);
-		};
-	}
+	public:
+		static void dump(ComWorld* asset);
+	};
 }

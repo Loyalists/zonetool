@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IClipMap
 	{
-		class IClipMap
-		{
-		public:
-			static void dump(clipMap_t* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(clipMap_t* asset, ZoneMemory* mem);
+	};
 }

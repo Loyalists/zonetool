@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IRawFile
 	{
-		class IRawFile
-		{
-		public:
-			static void dump(RawFile* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(RawFile* asset, ZoneMemory* mem);
+	};
 }

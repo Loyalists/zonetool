@@ -40,13 +40,8 @@ namespace ZoneTool
 
 			__asm
 			{
-				push ecx
-
 				mov eax, handle
-				mov ecx, func
-				call ecx
-
-				pop ecx
+				call func
 			}
 		}
 
@@ -108,7 +103,7 @@ namespace ZoneTool
 				}
 
 				// shi
-				//FS_FileClose(handle);
+				FS_FileClose(handle);
 			}
 
 			return file_buffer;
@@ -116,12 +111,14 @@ namespace ZoneTool
 
 		void Linker::startup()
 		{
-			// AssetHandler::SetDump(true);
-
-			FS_Read = FS_Read_t(0x525940);
-
 			if (this->is_used())
 			{
+				set_linker_mode(linker_mode::iw5);
+
+				// AssetHandler::SetDump(true);
+
+				FS_Read = FS_Read_t(0x525940);
+
 				// Kill original console window
 				Memory(0x53CB60).set<std::uint8_t>(0xC3);
 				Memory(0x53C850).set<std::uint8_t>(0xC3);
@@ -195,7 +192,7 @@ namespace ZoneTool
 		{
 			auto xassettypes = reinterpret_cast<char**>(0x7C6208);
 
-			for (std::int32_t i = 0; i < max; i++)
+			for (std::int32_t i = 0; i < ASSET_TYPE_COUNT; i++)
 			{
 				if (xassettypes[i] == type)
 					return i;
@@ -220,8 +217,10 @@ namespace ZoneTool
 			return false;
 		}
 
-        void Linker::dump_zone(const std::string& name)
+        void Linker::dump_zone(const std::string& name, zonetool::dump_target target)
 		{
+			zonetool::dumping_target = target;
+
 			is_dumping_complete = false;
 			is_dumping = true;
 

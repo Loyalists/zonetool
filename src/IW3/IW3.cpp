@@ -7,7 +7,6 @@
 // License: GNU GPL v3.0
 // ========================================================
 #include "stdafx.hpp"
-// #include "ZoneTool.hpp"
 
 namespace ZoneTool
 {
@@ -256,6 +255,8 @@ namespace ZoneTool
 		{
 			if (this->is_used())
 			{
+				set_linker_mode(linker_mode::iw3);
+
 				// Realloc asset pools
 				ReallocateAssetPoolM(localize, 2);
 				ReallocateAssetPoolM(material, 2);
@@ -382,8 +383,10 @@ namespace ZoneTool
 				version == zone_target_version::iw3_alpha_328;
 		}
 
-        void Linker::dump_zone(const std::string& name)
+        void Linker::dump_zone(const std::string& name, zonetool::dump_target target)
 		{
+			zonetool::dumping_target = zonetool::dump_target::h1; //zonetool::dumping_target = target;
+
 			isDumping = true;
 			currentDumpingZone = name;
 			load_zone(name);

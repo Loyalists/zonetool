@@ -1,5 +1,4 @@
 #include "stdafx.hpp"
-#include "H1/Assets/PhysPreset.hpp"
 #include "IW5/Structs.hpp"
 
 #include "IW5/Assets/PhysPreset.hpp"

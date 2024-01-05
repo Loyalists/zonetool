@@ -1,37 +1,19 @@
 #include "stdafx.hpp"
-#include "H1/Assets/GfxLightDef.hpp"
 
-namespace ZoneTool
+#include "Dumper/H1/Assets/GfxLightDef.hpp"
+#include "Dumper/IW6/Assets/GfxLightDef.hpp"
+
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	void IGfxLightDef::dump(GfxLightDef* asset, ZoneMemory* mem)
 	{
-		H1::GfxLightDef* GenerateH1GfxLightDef(GfxLightDef* asset, ZoneMemory* mem)
+		if (zonetool::dumping_target == zonetool::dump_target::h1)
 		{
-			auto* h1_asset = mem->Alloc<H1::GfxLightDef>();
-			h1_asset->name = asset->name;
-			if (asset->attenuation.image)
-			{
-				h1_asset->attenuation.image = mem->Alloc<H1::GfxImage>();
-				h1_asset->attenuation.image->name = asset->attenuation.image->name;
-			}
-			h1_asset->attenuation.samplerState = asset->attenuation.samplerState;
-			if (asset->cucoloris.image)
-			{
-				h1_asset->cucoloris.image = mem->Alloc<H1::GfxImage>();
-				h1_asset->cucoloris.image->name = asset->cucoloris.image->name;
-			}
-			h1_asset->cucoloris.samplerState = asset->cucoloris.samplerState;
-			h1_asset->lmapLookupStart = asset->lmapLookupStart;
-			return h1_asset;
+			return H1Dumper::dump(asset, mem);
 		}
-
-		void IGfxLightDef::dump(GfxLightDef* asset, ZoneMemory* mem)
+		else if (zonetool::dumping_target == zonetool::dump_target::iw6)
 		{
-			// generate h1 lightdef
-			auto* h1_asset = GenerateH1GfxLightDef(asset, mem);
-
-			// dump lightdef
-			H1::IGfxLightDef::dump(h1_asset);
+			return IW6Dumper::dump(asset, mem);
 		}
 	}
 }

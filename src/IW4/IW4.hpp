@@ -16,6 +16,10 @@
 #include "H1/Utils/IO/assetmanager.hpp"
 #include "H1/Structs.hpp"
 
+#include "IW6/Structs.hpp"
+
+#include "IW5/Structs.hpp"
+
 using namespace zonetool;
 
 #include "Json.hpp"
@@ -73,7 +77,7 @@ namespace ZoneTool
             bool supports_building() override;
 			bool supports_version(const zone_target_version version) override;
 			
-			void dump_zone(const std::string& name) override;
+			void dump_zone(const std::string& name, zonetool::dump_target target) override;
 			void verify_zone(const std::string& name) override;
 			
 			static void run();

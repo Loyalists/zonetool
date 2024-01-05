@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IComWorld
 	{
-		class IComWorld
-		{
-		public:
-			static void dump(ComWorld* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(ComWorld* asset, ZoneMemory* mem);
+	};
 }

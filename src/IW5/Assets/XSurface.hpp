@@ -1,13 +1,10 @@
 #pragma once
 
-namespace ZoneTool
+namespace ZoneTool::IW5
 {
-	namespace IW5
+	class IXSurface
 	{
-		class IXSurface
-		{
-		public:
-			static void dump(ModelSurface* asset, ZoneMemory* mem);
-		};
-	}
+	public:
+		static void dump(XModelSurfs* asset, ZoneMemory* mem);
+	};
 }

@@ -1,5 +1,4 @@
 #include "stdafx.hpp"
-#include "H1/Assets/Sound.hpp"
 #include "IW5/Structs.hpp"
 
 #include "IW5/Assets/Sound.hpp"
@@ -59,7 +58,7 @@ namespace ZoneTool
 			auto* iw5_asset = mem->Alloc<IW5::snd_alias_list_t>();
 			memset(iw5_asset, 0, sizeof IW5::snd_alias_list_t);
 
-			iw5_asset->name = asset->name;
+			iw5_asset->aliasName = asset->name;
 			iw5_asset->count = asset->count;
 
 			iw5_asset->head = mem->Alloc<IW5::snd_alias_t>(iw5_asset->count);
@@ -85,12 +84,12 @@ namespace ZoneTool
 				iw5_flags.isSlave = iw4_flags.isSlave;
 				iw5_flags.fullDryLevel = iw4_flags.fullDryLevel;
 				iw5_flags.noWetLevel = iw4_flags.noWetLevel;
-				iw5_flags.unknown1 = iw4_flags.unknown1;
-				iw5_flags.unknown2 = iw4_flags.unknown2;
+				iw5_flags.unknown = iw4_flags.unknown1;
+				iw5_flags.unk_is3D = iw4_flags.unknown2;
 				iw5_flags.type = iw4_flags.type;
 				iw5_flags.channel = channel_to_iw5(IW4::SoundChannel(iw4_flags.channel));
 
-				current_iw5->flags = iw5_flags.intValue;
+				current_iw5->flags.intValue = iw5_flags.intValue;
 
 				current_iw5->masterPriority = 50;
 				current_iw5->masterPercentage = current_iw4->___u15.masterPercentage;

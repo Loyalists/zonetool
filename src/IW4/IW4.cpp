@@ -7,7 +7,6 @@
 // License: GNU GPL v3.0
 // ========================================================
 #include "stdafx.hpp"
-#include <ZoneTool/ZoneTool.hpp>
 
 namespace ZoneTool
 {
@@ -635,6 +634,8 @@ char**>(0x00799278)[type]);
 		{
 			if (this->is_used())
 			{
+				set_linker_mode(linker_mode::iw4);
+
 				// 
 				Memory(0x470E30).jump(Load_StreamHook);
 				Memory(0x458A20).jump(DB_PushStreamPosHook);
@@ -843,8 +844,10 @@ char**>(0x00799278)[type]);
 				version == zone_target_version::iw4_alpha_482 || version == zone_target_version::iw4_alpha_491;
 		}
 
-        void Linker::dump_zone(const std::string& name)
+        void Linker::dump_zone(const std::string& name, zonetool::dump_target target)
 		{
+			zonetool::dumping_target = target;
+
 			isDumpingComplete = false;
 			isDumping = true;
 			currentDumpingZone = name;

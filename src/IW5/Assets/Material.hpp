@@ -2,7 +2,15 @@
 
 namespace ZoneTool
 {
-	extern std::unordered_map<std::string, std::string> mapped_techsets;
+	namespace H1
+	{
+		extern std::unordered_map<std::string, std::string> mapped_techsets;
+	}
+
+	namespace IW6
+	{
+		extern std::unordered_map<std::string, std::string> mapped_techsets;
+	}
 
 	namespace IW5
 	{
